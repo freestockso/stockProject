@@ -41,8 +41,6 @@ public class StockInfoAdapter {
         if (open == null) return null;
         BigDecimal bigDecimal1 = new BigDecimal(open).multiply(new BigDecimal(1000)).setScale(0, ROUND_DOWN);
         return bigDecimal1.longValue();
-//        Double aDouble = Double.valueOf(open);
-//        return (long) (aDouble * 100 + 0.5);
     }
 
     private static final String TEMPLATE_URL = "http://hq.sinajs.cn/list=%s";

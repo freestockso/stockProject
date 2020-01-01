@@ -1,13 +1,11 @@
 package com.cqq.stock.timer;
 
-import com.cqq.stock.constants.StockConstant;
-import com.cqq.stock.entity.ListEntity;
 import com.cqq.stock.entity.StockInfo;
 import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.interfaces.StockAble;
 import com.cqq.stock.service.NoticeService;
 import com.cqq.stock.service.StockService;
 import com.cqq.stock.util.QuicklyInsertUtil;
-import com.cqq.stock.util.TimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -56,7 +54,7 @@ public class SynchronizeDataTimer {
                 }).collect(Collectors.toList());
 
         log.info("prepare to database stock number:{}", prepareToDatabaseList.size());
-        QuicklyInsertUtil.main(prepareToDatabaseList);
+        QuicklyInsertUtil.quicklySaveToDatabase(prepareToDatabaseList.stream().map(s -> (StockAble) s).collect(Collectors.toList()));
     }
 
 
@@ -126,7 +124,6 @@ public class SynchronizeDataTimer {
 
     /**
      * 提醒用户出售的定时任务
-     *
      */
     @Scheduled(cron = "0 30/2 9-13 * * ?")
     public void noticeToSale() {
@@ -137,12 +134,11 @@ public class SynchronizeDataTimer {
 
     /**
      * 提醒用户出售的定时任务
-     *
      */
 //    @Scheduled(cron = "0 30/2 9-13 * * ?")
     @Scheduled(cron = "0 30/1 * * * ?")
     public void noticeToBuy() {
-         noticeService.noticeToBuy(null);
+        noticeService.noticeToBuy(null);
 
     }
 }

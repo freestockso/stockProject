@@ -1,6 +1,10 @@
 package com.cqq.stock.entity;
 
-public class StockTransactionInfo {
+import com.cqq.stock.interfaces.StockAble;
+import lombok.Data;
+
+@Data
+public class StockTransactionInfo implements StockAble {
 
     private Integer id;
     private String code;
@@ -13,17 +17,22 @@ public class StockTransactionInfo {
     private Long date;
     private Double cci;
 
-    public Long avg(){
+    public Long avg() {
         return (open + close + low + high) / 4;
     }
 
-    public double getCci() {
+    public Double getCci() {
         return cci;
     }
 
-    public void setCci(double cci) {
-        this.cci = cci;
+    @Override
+    public void setCci(Double value) {
+        this.cci = value;
+
     }
+
+
+
 
     public Integer getId() {
         return id;

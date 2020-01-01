@@ -1,5 +1,8 @@
 package com.cqq.stock.entity;
 
+import lombok.Data;
+
+@Data
 public class Buy {
     /**
      * 报价
@@ -11,21 +14,6 @@ public class Buy {
      */
     private String number;
 
-    public String getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = price;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
 
     @Override
     public String toString() {

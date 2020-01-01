@@ -1,7 +1,6 @@
 package com.cqq.stock.util;
 
-import com.cqq.stock.entity.StockInfo;
-import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.interfaces.StockAble;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,31 +8,44 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * 快速将股票数据插入库中
+ */
 public class QuicklyInsertUtil {
 
-    public static void main(List<StockTransactionInfo> list) {
-        List<Doing<StockTransactionInfo>> doing = new ArrayList<>();
+    private static List<Function<StockAble, Object>> functionList = new ArrayList<Function<StockAble, Object>>() {{
+        add(StockAble::getCode);
+        add(StockAble::getOpen);
+        add(StockAble::getClose);
+        add(StockAble::getHigh);
+        add(StockAble::getLow);
+        add(StockAble::getVol);
+        add(StockAble::getAmount);
+        add(StockAble::getDate);
+        add(StockAble::getCci);
+    }};
 
-        list = list.stream().peek(s -> {
+    public static void quicklySaveToDatabase(List<StockAble> list) {
 
-            s.setVol(Optional.ofNullable(s.getVol()).orElse(0L));
-            s.setAmount(Optional.ofNullable(s.getAmount()).orElse(0L));
-        }).collect(Collectors.toList());
+        for (int i = 0; i < list.size(); i++) {
 
-        doing.add(StockTransactionInfo::getCode);
-        doing.add(StockTransactionInfo::getOpen);
-        doing.add(StockTransactionInfo::getClose);
-        doing.add(StockTransactionInfo::getHigh);
-        doing.add(StockTransactionInfo::getLow);
-        doing.add(StockTransactionInfo::getVol);
-        doing.add(StockTransactionInfo::getAmount);
-        doing.add(StockTransactionInfo::getDate);
-        main("insert into stock_transaction_info_2019(code, open, close, high, low, vol, amount, date)  values(?, ?, ?, ?, ?, ?, ?, ?)", list, doing);
+            StockAble s = list.get(i);
+            s.setCci(s.getCci() == null || Double.isInfinite(s.getCci()) || Double.isNaN(s.getCci()) ? 10000 : s.getCci());
+            s.setCci(((int) (s.getCci() * 100)) / 100.0);
+            s.setVol(0L);
+            s.setAmount(0L);
+            list.set(i, s);
+        }
+
+        quicklySaveToDatabase("insert into stock_transaction_info(code, open, close, high, low, vol, amount, date, cci)  values(?, ?, ?, ?, ?, ?, ?, ?,?)", list, functionList);
     }
 
-    private static <T> void main(String sql, List<T> list, List<Doing<T>> consumerList) {
+
+    private static <T extends StockAble> void quicklySaveToDatabase(String sql, List<T> list, List<Function<T, Object>> consumerList) {
         String url = "jdbc:mysql://localhost:3306/stock_project?rewriteBatchedStatements=true&serverTimezone=UTC";
         String classname = "com.mysql.jdbc.Driver";
         try {
@@ -41,9 +53,9 @@ public class QuicklyInsertUtil {
             PreparedStatement ps = DriverManager.getConnection(url, "root", "root").prepareStatement(sql);
             for (T t : list) {
                 for (int j = 0; j < consumerList.size(); j++) {
-                    Doing<T> tDoing = consumerList.get(j);
+                    Function<T, Object> function = consumerList.get(j);
                     int finalJ = j;
-                    Optional.ofNullable(tDoing.accept(t)).map(Object::toString).ifPresent(string -> {
+                    Optional.ofNullable(function.apply(t)).map(Object::toString).ifPresent(string -> {
                         try {
                             ps.setString(finalJ + 1, string);
                         } catch (SQLException e) {
@@ -55,13 +67,23 @@ public class QuicklyInsertUtil {
             }
             ps.executeBatch();
             ps.close();
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            String message = e.getMessage();
+            Pattern compile = Pattern.compile("[0-9]+");
+            Matcher matcher = compile.matcher(message);
+            if (matcher.find()) {
+                String group = matcher.group(0);
+                int integer = Integer.parseInt(group);
+                System.out.println(list.get(integer - 1));
+                System.out.println(list.get(integer));
+                System.out.println(list.get(integer + 1));
+
+            }
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
 }
 
-interface Doing<T> {
-    Object accept(T data);
-}

@@ -1,8 +1,20 @@
 package com.cqq.stock.entity;
 
+import com.cqq.stock.interfaces.StockAble;
+
 public class CalculateStockTransactionInfo extends StockTransactionInfo {
 
     public CalculateStockTransactionInfo(StockTransactionInfo stockTransactionInfo) {
+        this.setClose(stockTransactionInfo.getClose());
+        this.setCode(stockTransactionInfo.getCode());
+        this.setDate(stockTransactionInfo.getDate());
+        this.setOpen(stockTransactionInfo.getOpen());
+        this.setHigh(stockTransactionInfo.getHigh());
+        this.setLow(stockTransactionInfo.getLow());
+
+    }
+
+    public CalculateStockTransactionInfo(StockAble stockTransactionInfo) {
         this.setClose(stockTransactionInfo.getClose());
         this.setCode(stockTransactionInfo.getCode());
         this.setDate(stockTransactionInfo.getDate());
@@ -34,11 +46,12 @@ public class CalculateStockTransactionInfo extends StockTransactionInfo {
         this.md = md;
     }
 
-    public double getCci() {
+    public Double getCci() {
+
         return cci;
     }
 
-    public void setCci(double cci) {
+    public void setCci(Double cci) {
         this.cci = cci;
     }
 

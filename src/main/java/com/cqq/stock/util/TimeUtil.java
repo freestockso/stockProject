@@ -3,6 +3,7 @@ package com.cqq.stock.util;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.function.Function;
 
 public class TimeUtil {
 
@@ -68,5 +69,22 @@ public class TimeUtil {
      */
     public static int getLastYearEndDate() {
         return getThisYearNumber() * 10000 + 1231 - 10000;
+    }
+
+
+    public static <T, U> T doingSomething(U u, Function<U, T> function, String flag) {
+        long spendTime = System.currentTimeMillis();
+        T apply = function.apply(u);
+        long spendTime2 = System.currentTimeMillis();
+        System.out.println(flag + "-spendTime:" + (spendTime2 - spendTime));
+        return apply;
+
+
+    }
+
+    public static <T, U> T doingSomething(U u, Function<U, T> function) {
+        return doingSomething(u, function, "no");
+
+
     }
 }

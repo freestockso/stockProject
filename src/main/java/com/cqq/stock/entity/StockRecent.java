@@ -1,8 +1,12 @@
 package com.cqq.stock.entity;
 
+import lombok.Data;
+
 import java.util.List;
 
+@Data
 public class StockRecent {
+
     /**
      * 股票名
      */
@@ -63,125 +67,13 @@ public class StockRecent {
      */
     private List<Sale> saleList;
     /**
-     * 日期
+     * 日期yyyy-mm-dd
      */
-    private String dateTime;//yyyy-mm-dd
+    private String dateTime;
     /**
      * 时间
      */
     private String time;
-
-    public String getNumberOfTransactions() {
-        return numberOfTransactions;
-    }
-
-    public void setNumberOfTransactions(String numberOfTransactions) {
-        this.numberOfTransactions = numberOfTransactions;
-    }
-
-    public String getTransactionPrice() {
-        return transactionPrice;
-    }
-
-    public void setTransactionPrice(String transactionPrice) {
-        this.transactionPrice = transactionPrice;
-    }
-
-    public String getBuyPrice() {
-        return buyPrice;
-    }
-
-    public void setBuyPrice(String buyPrice) {
-        this.buyPrice = buyPrice;
-    }
-
-    public String getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(String salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getOpen() {
-        return open;
-    }
-
-    public void setOpen(String open) {
-        this.open = open;
-    }
-
-    public String getClose() {
-        return close;
-    }
-
-    public void setClose(String close) {
-        this.close = close;
-    }
-
-    public String getNow() {
-        return now;
-    }
-
-    public void setNow(String now) {
-        this.now = now;
-    }
-
-    public String getHigh() {
-        return high;
-    }
-
-    public void setHigh(String high) {
-        this.high = high;
-    }
-
-    public String getLow() {
-        return low;
-    }
-
-    public void setLow(String low) {
-        this.low = low;
-    }
-
-    public List<Buy> getBuyList() {
-        return buyList;
-    }
-
-    public void setBuyList(List<Buy> buyList) {
-        this.buyList = buyList;
-    }
-
-    public List<Sale> getSaleList() {
-        return saleList;
-    }
-
-    public void setSaleList(List<Sale> saleList) {
-        this.saleList = saleList;
-    }
-
-    public String getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(String dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
 
     @Override
     public String toString() {
@@ -197,20 +89,12 @@ public class StockRecent {
                 ",\n 卖出价:" + salePrice +
                 ",\n 成交量:" + numberOfTransactions +
                 ",\n 成交额:" + transactionPrice +
-//                ",\n 购买表:\n----------------------------------------\n" + showBuy(buyList) +
-//                "\n 卖出表:\n----------------------------------------\n" + showSale(saleList) +
                 "\n日期:" + dateTime +
                 "\n时间:" + time;
     }
 
-    public String getCode() {
-        return code;
-    }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
-
+/*
     private String showSale(List<Sale> list) {
         String s = "一二三四五";
         StringBuilder mean = new StringBuilder();
@@ -230,6 +114,7 @@ public class StockRecent {
         }
         return mean.toString();
     }
+*/
 }
 
 

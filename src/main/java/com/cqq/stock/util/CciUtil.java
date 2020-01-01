@@ -2,6 +2,7 @@ package com.cqq.stock.util;
 
 import com.cqq.stock.entity.CalculateStockTransactionInfo;
 import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.interfaces.StockAble;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +20,7 @@ public class CciUtil {
      * @param stockTransactionInfos 2N日的信息
      * @return 计算过结果的信息
      */
-    public static List<CalculateStockTransactionInfo> main(List<StockTransactionInfo> stockTransactionInfos) {
+    public static <T extends StockAble> List<CalculateStockTransactionInfo> main(List<T> stockTransactionInfos) {
         List<CalculateStockTransactionInfo> stockList = stockTransactionInfos.stream()
                 .map(CalculateStockTransactionInfo::new)
                 .peek(CciUtil::tp).collect(Collectors.toList());
@@ -94,7 +95,7 @@ public class CciUtil {
         try {
             s.setCci(((s.getTp() - s.getMa()) / 1.0 / s.getMd()) / 0.015);
         } catch (Exception e) {
-            s.setCci(Integer.MAX_VALUE);
+            s.setCci(Integer.valueOf(Integer.MAX_VALUE).doubleValue());
         }
     }
 }
