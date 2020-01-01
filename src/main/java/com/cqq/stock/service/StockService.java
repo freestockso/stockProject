@@ -1,5 +1,6 @@
 package com.cqq.stock.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqq.stock.constants.StockConstant;
@@ -30,21 +31,11 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         return stockInfos.get(0);
     }
 
-    public void updateByStockInfoId(StockInfo stockInfo) {
-//        stockInfo.setLastCci(stockInfo.getLastCci() < -1000 ? -1000 : stockInfo.getLastCci());
-//        stockInfo.setLastCci(stockInfo.getLastCci() > 1000 ? 1000 : stockInfo.getLastCci());
-        try {
-            this.stockInfoMapper.updateById(stockInfo);
-        } catch (Exception e) {
-            stockInfo.setLastCci(-999.0);
-            this.stockInfoMapper.updateById(stockInfo);
-        }
-    }
 
     /**
      * 获取所有股票的代码,去除重复代码的股票
      *
-     * @return
+     * @return codeList
      */
     public List<String> getAllCodeList() {
 
@@ -58,14 +49,28 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     }
 
 
+/*
     public List<StockTransactionInfo> getListByToday(String date) {
         return stockTransactionInfoMapper.listByDate("stock_transaction_info_2019", date);
+    }
+*/
+
+    /**
+     * 得到该date下的所有股票交易日数据
+     *
+     * @param date 20190630
+     * @return list
+     */
+    public List<StockTransactionInfo> listByDate(long date) {
+        LambdaQueryWrapper<StockTransactionInfo> condition = Wrappers.<StockTransactionInfo>query().lambda()
+                .eq(StockTransactionInfo::getDate, date);
+        return this.stockTransactionInfoMapper.selectList(condition);
     }
 
     /**
      * 设置股票是以厘或分为单位
      *
-     * @param code
+     * @param code sh000001
      */
     public void setTenTo1(String code) {
         if (stockInfoMapper.setTen(code) > 0) {
@@ -78,14 +83,14 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     /**
      * 计算股票的额外信息， 包括 K线图， 以及CCI
      *
-     * @param code
-     * @return
+     * @param code sh000001
+     * @return list
      */
     public List<CalculateStockTransactionInfo> calculateStockAdditionalInformation(String code) {
-        List<StockTransactionInfo> list = stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> list = stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code,
                 TimeUtil.getLastYearNumber() * 10000, TimeUtil.getThisYearNumber() * 10000);
-        List<StockTransactionInfo> list2 = stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> list2 = stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code,
                 TimeUtil.getThisYearNumber() * 10000, TimeUtil.getDatetime());
         list.addAll(list2);
@@ -121,11 +126,11 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     /**
      * 查询已经到达买入点，并且已经开始上涨的股票
      *
-     * @return
+     * @return list
      */
     public List<StockInfo> getCanBuyAndGoUpStock() {
         return stockInfoMapper.getCanBuyStock(-100).stream().filter(stockInfo -> {
-            List<StockTransactionInfo> stockTransactionInfos = stockTransactionInfoMapper.selectList("stock_transaction_info_2019", stockInfo.getCode(), 2019_0000, 2019_1017);
+            List<StockTransactionInfo> stockTransactionInfos = stockTransactionInfoMapper.getList("stock_transaction_info_2019", stockInfo.getCode(), 2019_0000, 2019_1017);
             if (stockTransactionInfos.size() < 2) {
                 return false;
             }
@@ -143,12 +148,22 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     }
 
     /**
-     * 从股市中实时获取股票的数据
+     * 从现在的网络中获取股票的实时数据
      *
-     * @return
+     * @return list
      */
-    public List<StockTransactionInfo> getTodayAllStockInfoFromNetwork() {
+    public List<StockTransactionInfo> getAllStockFromNowNetwork() {
         return StockInfoAdapter.getStockTransactionInfoByCodeList(this.getAllCodeList());
+    }
+
+    /**
+     * 删除 数据库 中 的 数据
+     *
+     * @param date 20181231
+     * @return 成功删除
+     */
+    public boolean deleteByDate(long date) {
+        return stockTransactionInfoMapper.delete(Wrappers.<StockTransactionInfo>query().lambda().eq(StockTransactionInfo::getDate, date)) > 0;
     }
 
     public List<StockRecent> getToDayAllStockRecentByCodeList() {
@@ -159,6 +174,11 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         return new ArrayList<>(new HashSet<>(this.stockInfoMapper.selectList(null)));
     }
 
+    /**
+     * 股市的基本信息Map
+     *
+     * @return {code:name}
+     */
     public Map<String, StockInfo> getStockMap() {
         List<StockInfo> stockList = this.getStockList();
         Map<String, StockInfo> map = new HashMap<>();
@@ -183,7 +203,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
      */
     public List<EMAStock> calculateDIF(String code) {
         String tableName = getTableNameThisYear();
-        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(tableName, code, 2019_0000, 2019_1300);
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.getList(tableName, code, 2019_0000, 2019_1300);
         List<EMAStock> collect = list.stream().map(EMAStock::new).collect(Collectors.toList());
         EMACalculateUtil.calculateAll(collect, 12, 26, 9);
         return collect;
@@ -206,7 +226,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         for (int i = 0; i < min(size, size); i++) {
             String code = allCodeList.get(i);
             StockInfo stockInfo = this.selectByCode(code);
-            List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(getTableNameThisYear(), code, 2019_0000, 2019_1300);
+            List<StockTransactionInfo> list = this.stockTransactionInfoMapper.getList(getTableNameThisYear(), code, 2019_0000, 2019_1300);
             List<EMAStock> collect = list.stream().map(EMAStock::new).collect(Collectors.toList());
             EMACalculateUtil.calculateAll(collect, 12, 26, 9);
             if (!collect.isEmpty() && collect.get(collect.size() - 1).getMacd() > 0.5) {
@@ -221,7 +241,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
 
     public List<StockTransactionInfo> calculateCCI(String code) {
         List<StockTransactionInfo> list =
-                this.stockTransactionInfoMapper.selectList(getTableNameThisYear(), code, 2019_0000, 2019_1300);
+                this.stockTransactionInfoMapper.getList(getTableNameThisYear(), code, 2019_0000, 2019_1300);
         CciUtil.mainAndOrigin(list);
         list.forEach(System.out::println);
         return list;
@@ -235,10 +255,10 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         String code = "sh603606";
 
         List<String> allCodeList = getAllCodeList();
-        List<StockTransactionInfo> lastYear = this.stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> lastYear = this.stockTransactionInfoMapper.getList(
                 getTableNameThisYear(TimeUtil.getLastYearNumber()), code, TimeUtil.getLastYearBeginDate(), TimeUtil.getLastYearEndDate()
         );
-        List<StockTransactionInfo> thisYear = this.stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> thisYear = this.stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code, TimeUtil.getThisYearBeginDate(), TimeUtil.getThisYearEndDate()
         );
         lastYear.addAll(thisYear);
@@ -260,7 +280,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
      * 使用CCI低买高卖法计算一只股票通过这种方法，能够赚多少钱
      */
     public void getMoney(String code) {
-        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code, TimeUtil.getThisYearBeginDate(), TimeUtil.getThisYearEndDate()
         );
         int earnTimes = 0;
@@ -295,7 +315,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         //令open = close = high = close = X,则 CCI = f(x1,x2,x3,X) = -100 ,求解出x
         // 那么根据方程，推出当X = k时， CCI <= -100,则我第2天价格只要不超过k，则买入
         // 那么根据方程，推出当X = k2时， CCI >= 100,则我第2天价格只要不低于k2，则卖出
-        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code, TimeUtil.getThisYearBeginDate(), TimeUtil.getThisYearEndDate()
         );
         return calculate(x, list);
@@ -315,7 +335,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     }
 
     public GoodPricePoint autoGuess(String code) {
-        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.getList(
                 getTableNameThisYear(), code, TimeUtil.getThisYearBeginDate(), TimeUtil.getThisYearEndDate()
         );
         return getGoodPricePoint(code, list);
@@ -447,43 +467,8 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         times = 0;
     }
 
-    /**
-     * 大跌买入法
-     *
-     * @param code
-     */
-    public void dite(String code, int minX, int maxX) {
-/*        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(
-                getTableNameThisYear(), code,
-                TimeUtil.getThisYearBeginDate(),
-                TimeUtil.getThisYearEndDate());*/
 
-        List<StockTransactionInfo> l = this.stockTransactionInfoMapper.selectAll(getTableNameThisYear());
-//        List<StockTransactionInfo> collect = list.stream().filter(s -> s.getCode().equals(code)).collect(Collectors.toList());
-        Map<String, List<StockTransactionInfo>> m = l.stream().collect(Collectors.groupingBy(StockTransactionInfo::getCode));
-        m.forEach((c, list) -> {
-            Map<Integer, Double> map = new HashMap<>();
-            for (int i = 1; i < list.size(); i++) {
-                Long todayClose = list.get(i).getClose();
-                Long yesterdayClose = list.get(i - 1).getClose();
-                double value = (todayClose - yesterdayClose) * 100.0 / yesterdayClose;
-                map.put(i, value);
-            }
-            for (int i = 1; i < list.size(); i++) {
-                if (i + 1 < list.size() && in(map.get(i), minX, maxX)) {
-                    times++;
-                    if (list.get(i + 1).getClose() > list.get(i).getClose()) {
-                        success++;
-                    }
-                }
-            }
-        });
-        System.out.println(String.format("all time is %d,and success times is %d, rate is %.2f%%", times, success, success * 100.0 / times));
-        times = 0;
-        success = 0;
-    }
-
-    private boolean in(Double aDouble, int minX, int maxX) {
-        return aDouble >= minX && aDouble <= maxX;
+    public List<StockTransactionInfo> getListAfterDate(long date) {
+        return this.stockTransactionInfoMapper.selectList(Wrappers.<StockTransactionInfo>query().lambda().gt(StockTransactionInfo::getDate, date));
     }
 }

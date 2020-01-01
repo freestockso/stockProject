@@ -1,5 +1,7 @@
 package com.cqq.stock.util;
 
+import com.cqq.stock.entity.CalculateStockTransactionInfo;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -86,5 +88,25 @@ public class TimeUtil {
         return doingSomething(u, function, "no");
 
 
+    }
+
+    // 2019_12_23
+    public static long offset(long date, int basis) {
+        int year = (int) (date / 10000);
+        int day = (int) (date % 100);
+        int month = (int) ((date / 100) % 100);
+//        Date date1 = new Date(year,month,day);
+        Calendar instance = Calendar.getInstance();
+        instance.set(year, month-1, day, 0, 0);
+        long timeInMillis = instance.getTimeInMillis();
+        timeInMillis -= basis * 24 * 60 * 60 * 1000L;
+        Date d = new Date(timeInMillis);
+        Calendar instance1 = Calendar.getInstance();
+        instance1.setTime(d);
+        int beforeYear = instance1.get(Calendar.YEAR);
+        int beforeMonth = instance1.get(Calendar.MONTH) + 1;
+        int beforeDate = instance1.get(Calendar.DATE);
+        // 30/5*7 = 42  60
+        return beforeYear * 10000 + beforeMonth * 100 + beforeDate;
     }
 }

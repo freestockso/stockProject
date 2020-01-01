@@ -1,21 +1,16 @@
 package com.cqq.stock.timer;
 
-import com.cqq.stock.entity.StockInfo;
 import com.cqq.stock.entity.StockTransactionInfo;
-import com.cqq.stock.interfaces.StockAble;
 import com.cqq.stock.service.NoticeService;
+import com.cqq.stock.service.StockNewService;
 import com.cqq.stock.service.StockService;
-import com.cqq.stock.util.QuicklyInsertUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -24,6 +19,7 @@ public class SynchronizeDataTimer {
 
     private StockService stockService;
     private NoticeService noticeService;
+    private StockNewService stockNewService;
 
     /**
      * 每天下午3:30执行一次
@@ -31,30 +27,7 @@ public class SynchronizeDataTimer {
      */
     @Scheduled(cron = "0 30 15 * * ?")
     public void syncData() {
-        List<StockTransactionInfo> todayAllStockInfoFromNetwork = new ArrayList<>(stockService.getTodayAllStockInfoFromNetwork());
-
-        Map<String, StockInfo> stockMap = stockService.getStockMap();
-
-        Long date = todayAllStockInfoFromNetwork.size() == 0 ? 0 : todayAllStockInfoFromNetwork.get(0).getDate();
-
-        List<StockTransactionInfo> listByToday = stockService.getListByToday(String.valueOf(date));
-        Map<String, List<StockTransactionInfo>> map = listByToday.stream().collect(Collectors.groupingBy(StockTransactionInfo::getCode));
-
-        List<StockTransactionInfo> prepareToDatabaseList = todayAllStockInfoFromNetwork.stream().filter(s -> {
-            List<StockTransactionInfo> stockTransactionInfos = map.get(s.getCode());
-            return stockTransactionInfos == null || stockTransactionInfos.isEmpty();
-        }).filter(s -> s.getClose() + s.getOpen() + s.getHigh() + s.getLow() != 0)
-                .filter(s -> s.getDate().equals(date))
-                .peek(s -> {
-                    StockInfo stockInfo = stockMap.get(s.getCode());
-                    s.setLow(s.getLow() / (stockInfo.getTen()));
-                    s.setHigh(s.getHigh() / (stockInfo.getTen()));
-                    s.setOpen(s.getOpen() / (stockInfo.getTen()));
-                    s.setClose(s.getClose() / (stockInfo.getTen()));
-                }).collect(Collectors.toList());
-
-        log.info("prepare to database stock number:{}", prepareToDatabaseList.size());
-        QuicklyInsertUtil.quicklySaveToDatabase(prepareToDatabaseList.stream().map(s -> (StockAble) s).collect(Collectors.toList()));
+        stockNewService.syncDataFromNetwork(true);
     }
 
 
@@ -66,8 +39,8 @@ public class SynchronizeDataTimer {
     public void ifThereIsATenfoldGap() {
         int sum = 0;
         int equalSum = 0;
-        List<StockTransactionInfo> networkData = stockService.getTodayAllStockInfoFromNetwork();
-        List<StockTransactionInfo> databaseData = stockService.getListByToday("20191014");
+        List<StockTransactionInfo> networkData = stockService.getAllStockFromNowNetwork();
+        List<StockTransactionInfo> databaseData = stockService.listByDate(20191014);
         HashSet<String> set = new HashSet<>();
         for (StockTransactionInfo net : networkData) {
             for (StockTransactionInfo data : databaseData) {

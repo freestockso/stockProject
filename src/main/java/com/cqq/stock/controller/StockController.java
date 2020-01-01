@@ -126,8 +126,4 @@ public class StockController {
         this.stockService.calculateHui5DayLine(code, day);
     }
 
-    @GetMapping("dite")
-    public void dite(String code, Integer min, Integer max) {
-        this.stockService.dite(code, min, max);
-    }
 }
