@@ -1,8 +1,15 @@
 package com.cqq.stock.util;
 
+//import org.apache.logging.log4j.util.Strings;
+
+import org.apache.logging.log4j.util.Strings;
+
 import java.io.*;
 import java.net.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,58 +25,56 @@ public class MySpider {
     private String formData = null;
     private boolean useCache = false;
     private boolean method = false;
-    private String encodingType = null;
+    private String encodingType;
 
 
     public String getSavePath() {
         return savePath;
     }
 
-
     public void setSavePath(String savePath) {
         this.savePath = savePath;
     }
 
+    public String getUrl() {
+        return url;
+    }
 
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
     public String getEncodingType() {
         return encodingType;
     }
-
 
     public void setEncodingType(String encodingType) {
         this.encodingType = encodingType;
     }
 
-
     public boolean isMethod() {
         return method;
     }
-
 
     public void setPost(boolean method) {
         this.method = method;
     }
 
-
     public String getFormData() {
         return formData;
     }
-
 
     public void setFormData(String formData) {
         this.formData = formData;
     }
 
-
     public String getProxyIp() {
         return proxyIp;
     }
 
-
     public boolean isUseCache() {
         return useCache;
     }
-
 
     public void setUseCache(boolean useCache) {
         this.useCache = useCache;
@@ -80,36 +85,34 @@ public class MySpider {
         this.proxyIp = proxyIp;
     }
 
-
     public int getProxyPort() {
         return proxyPort;
     }
-
 
     public void setProxyPort(int proxyPort) {
         this.proxyPort = proxyPort;
     }
 
-
     public String getFileURL() {
         return fileURL;
     }
-
 
     public void setFileURL(String fileURL) {
         this.fileURL = fileURL;
     }
 
-    HashMap<String, String> map = new HashMap<>();
+    /**
+     * 全局变量存放路径
+     */
     private String savePath;
 
     public void put(String key, String value) {
         File file = new File(savePath);
-        if (file.exists() == false) {
+        if (!file.exists()) {
             try {
-                file.createNewFile();
+                boolean newFile = file.createNewFile();
+                infoCreate(newFile,file.getName());
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -123,13 +126,17 @@ public class MySpider {
             }
             fw.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
 
     }
 
+    /**
+     * 获取路径的配置文件
+     *
+     * @return map
+     */
     private HashMap<String, String> getConfigHashMap() {
 
         File file = new File(savePath);
@@ -137,36 +144,35 @@ public class MySpider {
         BufferedReader br;
         try {
             br = new BufferedReader(new FileReader(file));
-            String str = null;
+            String str;
             while (true) {
                 str = br.readLine();
                 if (str == null) {
                     break;
                 }
-                String k_v[] = str.split("=");
-                all.put(k_v[0], k_v[1]);
+                String[] kv = str.split("=");
+                all.put(kv[0], kv[1]);
             }
             return all;
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return new HashMap<>();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return new HashMap<>();
         }
 
     }
 
+    /**
+     * 从配置中读取字符串数据
+     *
+     * @param key key
+     * @return value
+     */
     public String getString(String key) {
         File file = new File(savePath);
-        if (file.exists() == false) {
+        if (!file.exists()) {
             return null;
         }
         return getConfigHashMap().get(key);
-
-
     }
 
     public Integer getInteger(String key) {
@@ -180,19 +186,9 @@ public class MySpider {
 
     public MySpider() {
         super();
-        if (encodingType == null) {
-            encodingType = "UTF-8";
-        }
+        encodingType = "UTF-8";
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 
 
     public String getCookies() {
@@ -209,15 +205,13 @@ public class MySpider {
         return params;
     }
 
-    public void sleep() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
 
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * 随机睡眠 min - max ms
+     *
+     * @param min 1000
+     * @param max 1500
+     */
     public void sleep(int min, int max) {
         if (min > max) {
             int t = min;
@@ -237,7 +231,7 @@ public class MySpider {
         this.params = params;
     }
 
-    public List<String> matcher(String source, String regex) {
+    public List<String> match(String source, String regex) {
 
         return matcher(source, regex, false);
     }
@@ -251,8 +245,6 @@ public class MySpider {
         for (String source : sources) {
             list.addAll(match(source, pattern, group, show));
         }
-
-
         return list;
     }
 
@@ -264,7 +256,6 @@ public class MySpider {
             String url = m.group(group);
             // 	 System.out.println(url);
             list.add(url);
-
         }
         if (show) {
             for (String s : list) {
@@ -278,30 +269,22 @@ public class MySpider {
     }
 
     public List<String> matcher(String source, String regex, int group) {
-
         Pattern pattern = Pattern.compile(regex);
-
         Matcher matcher = pattern.matcher(source);
 
-        List<String> list = new ArrayList<String>();
-
+        List<String> list = new ArrayList<>();
         while (matcher.find()) {
-
             list.add(matcher.group(group));
         }
 
         return list;
     }
 
-    public List<String> matcher(List<String> list, String regex, int group) {
-        List<String> a = new ArrayList<String>();
-
-        int sum = 0;
+    public List<String> match(List<String> list, String regex, int group) {
+        List<String> a = new ArrayList<>();
         for (String str : list) {
             List<String> temp = matcher(str, regex, group);
-            sum += temp.size();
             a.addAll(temp);
-
         }
         return a;
     }
@@ -312,29 +295,23 @@ public class MySpider {
 
         Matcher matcher = pattern.matcher(source);
 
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
 
         while (matcher.find()) {
-
             list.add(matcher.group());
         }
 
         if (show) {
-
-            for (String s : list) {
-                System.out.println(s);
-
-            }
+            list.forEach(System.out::println);
             System.out.println(list.size());
         }
-
         return list;
 
 
     }
 
     public List<String> matcher(List<String> list, String regex, boolean show) {
-        List<String> a = new ArrayList<String>();
+        List<String> a = new ArrayList<>();
 
         int sum = 0;
         for (String str : list) {
@@ -367,7 +344,6 @@ public class MySpider {
         try {
             return getResponseBody();
         } catch (Exception e) {
-
             e.printStackTrace();
         }
         return null;
@@ -378,103 +354,65 @@ public class MySpider {
         if (useCache) {
             if (fileURL != null && !fileURL.equals("")) {
                 File file = new File(fileURL);
-
                 if (!file.exists()) {
                     file.createNewFile();
                 }
-
                 BufferedReader br = new BufferedReader(new FileReader(file));
-                String info = "";
-                String str = null;
+                StringBuilder info = new StringBuilder();
+                String str;
                 while ((str = br.readLine()) != null) {
-                    info += str;
+                    info.append(str);
                 }
                 br.close();
                 if (info.length() != 0) {
-                    return info;
+                    return info.toString();
                 }
-
-
             }
-
-
         }
 
         URL uri = new URL(url);
 
-        URLConnection conn = null;
+        URLConnection conn = getUrlConnection(uri);
 
-        if (proxyIp == null || proxyIp.equals("")) {
-
-            conn = (URLConnection) uri.openConnection();
-
-        } else {
-
-            InetSocketAddress addr = new InetSocketAddress(proxyIp, proxyPort);
-
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, addr); // http 代理
-
-
-            conn = uri.openConnection(proxy);
-
-
-        }
-
-
-        if (formData != null && !formData.equals("")) {
+        if (!Strings.isEmpty(formData)) {
             conn.setRequestProperty("Content-Type", "multipart/form-data; " + formData);
         }
 
 
-        //
-
         conn.setConnectTimeout(15000);
-
         conn.setReadTimeout(15000);
-        conn.setConnectTimeout(1000);
-
         conn.setRequestProperty("connection", "keep-alive");
-
         conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; CIBA)");
 
-        if (cookies != null && !cookies.equals("")) conn.setRequestProperty("Cookie", cookies);
-
+        if (!Strings.isEmpty(cookies)) conn.setRequestProperty("Cookie", cookies);
 
         conn.setDoInput(true);
-
         conn.setDoOutput(method);
-
         conn.connect();
 
 
-        if (params != null && !params.equals("")) {
-            OutputStreamWriter out = new OutputStreamWriter(
-                    conn.getOutputStream());
-
+        if (!Strings.isEmpty(params)) {
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
             out.write(params);
             out.flush();
         }
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                conn.getInputStream(), encodingType));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), encodingType));
         String lines;
-        String response = "";
+        StringBuilder response = new StringBuilder();
         while ((lines = reader.readLine()) != null) {
-            lines = new String(lines.getBytes(), "UTF-8");
-            response += lines;
+            lines = new String(lines.getBytes(), encodingType);
+            response.append(lines);
         }
         reader.close();
-
         //    conn.disconnect();  // 断开连接
-
-        if (fileURL != null && !fileURL.equals("")) {
+        if (!Strings.isEmpty(fileURL)) {
             File f = new File(fileURL);
             FileWriter fw = new FileWriter(f);
-            fw.append(response);
+            fw.append(response.toString());
             fw.close();
-
         }
-        return response;
+        return response.toString();
 
     }
 
@@ -488,7 +426,7 @@ public class MySpider {
         InetSocketAddress addr = null;
         addr = new InetSocketAddress(ip, port);
         Proxy proxy = new Proxy(Proxy.Type.HTTP, addr); // http proxy
-        InputStream in = null;
+        InputStream in;
         try {
             URLConnection conn = url.openConnection(proxy);
             conn.setConnectTimeout(1000);
@@ -515,7 +453,7 @@ public class MySpider {
         String line = null;
         try {
             while ((line = reader.readLine()) != null) {
-                sb.append(line + "/n");
+                sb.append(line).append("/n");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -561,64 +499,37 @@ public class MySpider {
 
     }
 
-    public static void main(String[] args) {
-
-    }
-
     public boolean download(String src, String path) {
 
         File file = new File(path);
-
         File father = file.getParentFile();
-
-        if (father.exists() == false) {
-
-            father.mkdirs();
+        if (!father.exists()) {
+            boolean mkdir = father.mkdirs();
+            infoCreate(mkdir, father.getName());
         }
-
-        if (file.exists() == false) {
+        if (!file.exists()) {
             try {
-                file.createNewFile();
+                boolean newFile = file.createNewFile();
+                infoCreate(newFile,file.getName());
             } catch (IOException e) {
-
                 e.printStackTrace();
             }
         }
 
 
-        List<String> listImgSrc = new ArrayList<String>();
+        List<String> listImgSrc = new ArrayList<>();
         listImgSrc.add(src);
         try {
-            //开始时间
-            Date begindate = new Date();
             System.out.println(src);
             URL uri = new URL(src);
-
-            URLConnection conn = null;
-
-            if (proxyIp == null || proxyIp.equals("")) {
-
-                conn = (URLConnection) uri.openConnection();
-
-            } else {
-
-                InetSocketAddress addr = new InetSocketAddress(proxyIp, proxyPort);
-
-                Proxy proxy = new Proxy(Proxy.Type.HTTP, addr); // http 代理
-
-
-                conn = uri.openConnection(proxy);
-
-            }
+            URLConnection conn = getUrlConnection(uri);
             for (String url : listImgSrc) {
-                //开始时间
-                long begin = System.currentTimeMillis();
-                String imageName = url.substring(url.lastIndexOf("/") + 1, url.length());
+                long time1 = System.currentTimeMillis();
                 conn.getInputStream();
                 InputStream in = conn.getInputStream();
                 FileOutputStream fo = new FileOutputStream(file);//文件输出流
                 byte[] buf = new byte[1024];
-                int length = 0;
+                int length;
                 System.out.println("开始下载:" + url);
                 while ((length = in.read(buf, 0, buf.length)) != -1) {
                     fo.write(buf, 0, length);
@@ -627,8 +538,8 @@ public class MySpider {
                 //关闭流
                 in.close();
                 fo.close();
-                System.out.println("${path}下载完成,耗时${time}".replace("${path}", path).replace("${time}", ((System.currentTimeMillis() - begin) / 1000.0) + "秒"));
-
+                long time2 = System.currentTimeMillis();
+                System.out.println("${path}下载完成,耗时${time}".replace("${path}", path).replace("${time}", ((time2 - time1) / 1000.0) + "秒"));
             }
         } catch (Exception e) {
             System.out.println("下载失败");
@@ -636,6 +547,26 @@ public class MySpider {
             return false;
         }
         return true;
+    }
+
+    private void infoCreate(boolean success, String name) {
+        if (success) {
+            System.out.println("mkdir dir success:" + name);
+        } else {
+            System.out.println("mkdir dir error:" + name);
+        }
+    }
+
+    private URLConnection getUrlConnection(URL uri) throws IOException {
+        URLConnection conn;
+        if (Strings.isEmpty(proxyIp)) {
+            conn = uri.openConnection();
+        } else {
+            InetSocketAddress addr = new InetSocketAddress(proxyIp, proxyPort);
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, addr); // http 代理
+            conn = uri.openConnection(proxy);
+        }
+        return conn;
     }
 
 

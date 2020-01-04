@@ -49,4 +49,6 @@ public class NumberUtil {
     public static boolean notIn(double x, double a, double b) {
         return !in(x, a, b);
     }
+
+
 }

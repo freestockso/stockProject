@@ -52,17 +52,35 @@ public class ReadUtil {
      */
     private static List<Stock> parseIntegerListToStockList(File file) {
         List<Integer> values = getIntegerListByFile(file);
+        return getStocks(values);
+    }
+
+    static List<Stock> getStocks(List<Integer> values,String code) {
         List<Stock> list = new ArrayList<>();
         for (int i = 0; i < values.size(); i += 8) {
             Stock stock = new Stock();
-            for (int j = 0; j < 8; j++) {
-                int k = i + j;
-                Integer integer = values.get(k);
-                thingMap.get(k % 8).accept(stock, integer.longValue());
-                if (k % 8 == 7) {
-                    list.add(stock);
-                }
+            stock.setCode(code);
+            setValue(values, list, i, stock);
+        }
+        return list;
+    }
+
+    private static void setValue(List<Integer> values, List<Stock> list, int i, Stock stock) {
+        for (int j = 0; j < 8; j++) {
+            int k = i + j;
+            Integer integer = values.get(k);
+            thingMap.get(k % 8).accept(stock, integer.longValue());
+            if (k % 8 == 7) {
+                list.add(stock);
             }
+        }
+    }
+
+    static List<Stock> getStocks(List<Integer> values) {
+        List<Stock> list = new ArrayList<>();
+        for (int i = 0; i < values.size(); i += 8) {
+            Stock stock = new Stock();
+            setValue(values, list, i, stock);
         }
         return list;
     }

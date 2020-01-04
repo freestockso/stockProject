@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ParseNetworkStockUtil {
@@ -73,6 +75,7 @@ public class ParseNetworkStockUtil {
         String[] split = content.split(";");
         return Arrays.stream(split).map(ParseNetworkStockUtil::parseChild).collect(Collectors.toList());
     }
+    private static Pattern compile = Pattern.compile("hq_str_(.*)=");
 
     /**
      * https://blog.csdn.net/fangquan1980/article/details/80006840
@@ -82,24 +85,36 @@ public class ParseNetworkStockUtil {
      */
     private static StockRecent parseChild(String content) {
         StockRecent stockRecent = new StockRecent();
-        if (content.contains(",")) {
-            String code = content.substring(content.indexOf(" ") + 1, content.indexOf("="));
-            code = code.substring(code.indexOf(HQ_STR_) + HQ_STR_.length());
+        String code = null;
+        Matcher matcher = compile.matcher(content);
+        if(matcher.find()){
+            code = matcher.group(1);
             stockRecent.setCode(code);
+        }else{
+            System.out.println("match code error, error content is " + content);
         }
+
         String data = content.substring(content.indexOf(STR1), content.lastIndexOf(STR1));
         String[] splitData = data.split(",");
-        stockRecent.setName(splitData[0]);
-        stockRecent.setOpen(splitData[1]);
-        stockRecent.setNow(splitData[3]);
-        stockRecent.setClose(splitData[3]);//当时间在15:10以后成立
-        stockRecent.setHigh(splitData[4]);
-        stockRecent.setLow(splitData[5]);
-        stockRecent.setBuyPrice(splitData[6]);
-        stockRecent.setSalePrice(splitData[7]);
-        stockRecent.setNumberOfTransactions(splitData[8]);
-        stockRecent.setTransactionPrice(splitData[9]);
-        stockRecent.setDateTime(splitData[30]);
+
+        try {
+
+            stockRecent.setName(splitData[0]);
+            stockRecent.setOpen(splitData[1]);
+            stockRecent.setNow(splitData[3]);
+            stockRecent.setClose(splitData[3]);//当时间在15:10以后成立
+            stockRecent.setHigh(splitData[4]);
+            stockRecent.setLow(splitData[5]);
+            stockRecent.setBuyPrice(splitData[6]);
+            stockRecent.setSalePrice(splitData[7]);
+            stockRecent.setNumberOfTransactions(splitData[8]);
+            stockRecent.setTransactionPrice(splitData[9]);
+            stockRecent.setDateTime(splitData[30]);
+        }catch (ArrayIndexOutOfBoundsException e){
+            System.out.println("network parse error stock-code:"+code);
+            return null;
+
+        }
         return stockRecent;
     }
 }
