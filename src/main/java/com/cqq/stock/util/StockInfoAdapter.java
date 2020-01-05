@@ -21,11 +21,12 @@ public class StockInfoAdapter {
 
     public static StockTransactionInfo getStockTransactionInfoByStockRecent(StockRecent stockRecent) {
         StockTransactionInfo stockTransactionInfo = new StockTransactionInfo();
-        stockTransactionInfo.setCode(stockRecent.getCode());
-        stockTransactionInfo.setOpen(double2Long(stockRecent.getOpen()));
-        stockTransactionInfo.setClose(double2Long(stockRecent.getClose()));
-        stockTransactionInfo.setHigh(double2Long(stockRecent.getHigh()));
-        stockTransactionInfo.setLow(double2Long(stockRecent.getLow()));
+        String code = stockRecent.getCode();
+        stockTransactionInfo.setCode(code);
+        stockTransactionInfo.setOpen(NetworkPrice2DataPrice.getPrice(code,stockRecent.getOpen()));
+        stockTransactionInfo.setClose(NetworkPrice2DataPrice.getPrice(code,stockRecent.getClose()));
+        stockTransactionInfo.setHigh(NetworkPrice2DataPrice.getPrice(code,stockRecent.getHigh()));
+        stockTransactionInfo.setLow(NetworkPrice2DataPrice.getPrice(code,stockRecent.getLow()));
 //        stockTransactionInfo.setVol(double2Long(stockRecent.getNumberOfTransactions()));
 //        stockTransactionInfo.setAmount(double2Long(stockRecent.getTransactionPrice()));
         stockTransactionInfo.setDate(date2Long(stockRecent.getDateTime()));

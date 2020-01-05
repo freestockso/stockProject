@@ -2,11 +2,9 @@ package com.cqq.stock.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-public class ArrayUtil {
+public class ArrayGroupUtil {
 
 
     /**

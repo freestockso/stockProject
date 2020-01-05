@@ -69,6 +69,11 @@ public class StockTransactionInfo implements StockAble {
         this.close = close;
     }
 
+    @Override
+    public void setReserv(Long value) {
+
+    }
+
     public Long getHigh() {
         return high;
     }

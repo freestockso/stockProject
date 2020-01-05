@@ -28,7 +28,7 @@ public class QuicklyInsertUtilTest {
                     .map(ls -> TimeUtil.doingSomething(ls, CciUtil::main, "cci:main"))
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
-            ArrayUtil.batch(list, 50_0000).forEach(ls -> {
+            ArrayGroupUtil.batch(list, 50_0000).forEach(ls -> {
                 long time1 = System.currentTimeMillis();
                 QuicklyInsertUtil.quicklySaveToDatabase(ls.stream().map(s -> (StockAble) s).collect(Collectors.toList()));
                 long time2 = System.currentTimeMillis();

@@ -166,6 +166,13 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         return stockTransactionInfoMapper.delete(Wrappers.<StockTransactionInfo>query().lambda().eq(StockTransactionInfo::getDate, date)) > 0;
     }
 
+    public boolean deleteBetweenDate(long startDate,long endDate) {
+        return stockTransactionInfoMapper.delete(
+                Wrappers.<StockTransactionInfo>query().lambda()
+                        .ge(StockTransactionInfo::getDate, startDate)
+                        .le(StockTransactionInfo::getDate, endDate)
+        ) > 0;
+    }
     public List<StockRecent> getToDayAllStockRecentByCodeList() {
         return StockInfoAdapter.getStockRecentByCodeList(this.getAllCodeList());
     }
@@ -188,9 +195,10 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         return map;
     }
 
-    public List<StockInfo> getCciListByCode(String code) {
-        StockInfo stockInfo = this.selectByCode(code);
-        return null;
+    public List<StockTransactionInfo> getCciListByCode(String code) {
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(Wrappers.<StockTransactionInfo>lambdaQuery().eq(StockTransactionInfo::getCode, code));
+        return list.stream().skip(28).collect(Collectors.toList());
+//        StockInfo stockInfo = this.stockTransactionInfoMapper.selectByCode(code);
 
     }
 
@@ -470,5 +478,13 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
 
     public List<StockTransactionInfo> getListAfterDate(long date) {
         return this.stockTransactionInfoMapper.selectList(Wrappers.<StockTransactionInfo>query().lambda().gt(StockTransactionInfo::getDate, date));
+    }
+
+    public List<StockTransactionInfo> getListBetween(long startDate, long endDate) {
+        return this.stockTransactionInfoMapper.selectList(
+                Wrappers.<StockTransactionInfo>query().lambda()
+                        .ge(StockTransactionInfo::getDate, startDate)
+                        .le(StockTransactionInfo::getDate, endDate)
+        );
     }
 }

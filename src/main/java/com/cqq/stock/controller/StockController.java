@@ -4,7 +4,6 @@ import com.cqq.stock.entity.*;
 import com.cqq.stock.service.StockService;
 import com.cqq.stock.util.AnalysisUtil;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +70,7 @@ public class StockController {
         return stockService.syncDataFrom2DatabaseNetwork();
     }
 
-    public List<StockInfo> getCciListByCode(String code) {
+    public List<StockTransactionInfo> getCciListByCode(String code) {
         return stockService.getCciListByCode(code);
 
     }

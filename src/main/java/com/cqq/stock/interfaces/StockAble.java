@@ -6,6 +6,20 @@ package com.cqq.stock.interfaces;
  */
 public interface StockAble {
 
+    void setDate(Long date);
+
+    void setCode(String code);
+
+    void setOpen(Long value);
+
+    void setHigh(Long value);
+
+    void setLow(Long value);
+
+    void setClose(Long value);
+
+    void setReserv(Long value);
+
     String getCode();
 
     Long getOpen();
@@ -25,6 +39,7 @@ public interface StockAble {
     Double getCci();
 
     void setCci(Double value);
+
     void setVol(Long value);
 
     void setAmount(Long value);

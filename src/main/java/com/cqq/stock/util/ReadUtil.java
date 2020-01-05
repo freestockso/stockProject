@@ -1,6 +1,7 @@
 package com.cqq.stock.util;
 
 import com.cqq.stock.entity.Stock;
+import com.cqq.stock.interfaces.StockAble;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +44,20 @@ public class ReadUtil {
 
 
     private static Map<Integer, BiConsumer<Stock, Long>> thingMap = getThingMap();
+//    private static Map<Integer, BiConsumer<T, Long>> thingMapV2 = getThingMapV2();
+
+    private static <T extends StockAble> Map<Integer, BiConsumer<T, Long>> getThingMapV2() {
+        return new HashMap<Integer, BiConsumer<T, Long>>() {{
+            put(0, T::setDate);
+            put(1, T::setOpen);
+            put(2, T::setHigh);
+            put(3, T::setLow);
+            put(4, T::setClose);
+            put(5, T::setAmount);
+            put(6, T::setVol);
+            put(7, T::setReserv);
+        }};
+    }
 
     /**
      * 解析 单个 file, 生成 stock 数组
@@ -50,12 +65,12 @@ public class ReadUtil {
      * @param file 就像 sh000001.sh
      * @return stock数组
      */
-    private static List<Stock> parseIntegerListToStockList(File file) {
+    public static List<Stock> parseIntegerListToStockList(File file) {
         List<Integer> values = getIntegerListByFile(file);
         return getStocks(values);
     }
 
-    static List<Stock> getStocks(List<Integer> values,String code) {
+    static List<Stock> getStocks(List<Integer> values, String code) {
         List<Stock> list = new ArrayList<>();
         for (int i = 0; i < values.size(); i += 8) {
             Stock stock = new Stock();
@@ -63,6 +78,42 @@ public class ReadUtil {
             setValue(values, list, i, stock);
         }
         return list;
+    }
+
+    /**
+     * getStocks的强化版，能够根据泛型去进行拼捷
+     *
+     * @param values 需要重组的int的list
+     * @param code   股票代号
+     * @param clazz  重组类型
+     * @param <T>    泛型
+     * @return List<T>
+     */
+    static <T extends StockAble> List<T> getStocksByGeneric(List<Integer> values, String code, Class<T> clazz) {
+        List<T> list = new ArrayList<>();
+        for (int i = 0; i < values.size(); i += 8) {
+            try {
+                T t = clazz.newInstance();
+                t.setCode(code);
+                setValueV2(values, list, i, t);
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
+    }
+
+    private static <T extends StockAble> void setValueV2(List<Integer> values, List<T> list, int i, T stock) {
+        Map<Integer, BiConsumer<StockAble, Long>> thingMapV2 = getThingMapV2();
+//        stockAbleLongBiConsumer.accept(list, values);
+        for (int j = 0; j < 8; j++) {
+            int k = i + j;
+            Integer integer = values.get(k);
+            thingMapV2.get(k % 8).accept(stock, integer.longValue());
+            if (k % 8 == 7) {
+                list.add(stock);
+            }
+        }
     }
 
     private static void setValue(List<Integer> values, List<Stock> list, int i, Stock stock) {
