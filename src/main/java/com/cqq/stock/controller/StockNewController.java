@@ -5,6 +5,7 @@ import com.cqq.stock.entity.dto.StartDateDTO;
 import com.cqq.stock.service.StockNewService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +38,7 @@ public class StockNewController {
       *
      * @param startDateDTO@return
      */
-    @RequestMapping("syncDataByDesk")
+    @PostMapping("syncDataByDesk")
     public String syncDataByDesk(@RequestBody @Valid StartDateDTO startDateDTO) {
         stockNewService.syncDataByDesk(startDateDTO.getDate());
         return "success";

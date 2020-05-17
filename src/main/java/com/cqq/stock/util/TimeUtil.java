@@ -19,7 +19,7 @@ public class TimeUtil {
      */
     public static int getDatetime() {
         String yyyyMMdd = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        return Integer.valueOf(yyyyMMdd);
+        return Integer.parseInt(yyyyMMdd);
     }
 
     /**
@@ -84,11 +84,6 @@ public class TimeUtil {
 
     }
 
-    public static <T, U> T doingSomething(U u, Function<U, T> function) {
-        return doingSomething(u, function, "no");
-
-
-    }
 
     // 2019_12_23
     public static long offset(long date, int basis) {
@@ -97,7 +92,7 @@ public class TimeUtil {
         int month = (int) ((date / 100) % 100);
 //        Date date1 = new Date(year,month,day);
         Calendar instance = Calendar.getInstance();
-        instance.set(year, month-1, day, 0, 0);
+        instance.set(year, month - 1, day, 0, 0);
         long timeInMillis = instance.getTimeInMillis();
         timeInMillis -= basis * 24 * 60 * 60 * 1000L;
         Date d = new Date(timeInMillis);

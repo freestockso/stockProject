@@ -156,8 +156,8 @@ public class QuicklyReadUtil {
             String code = name.substring(0, name.indexOf('.'));
             List<StockTransactionInfo> stocksByGeneric = ReadUtil.getStocksByGeneric(list, code, StockTransactionInfo.class);
             long time2 = System.currentTimeMillis();
-            System.out.println(time2 - time1);
-            return  stocksByGeneric;
+            System.out.println("spend time:" + (time2 - time1));
+            return stocksByGeneric;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -168,6 +168,7 @@ public class QuicklyReadUtil {
     /**
      * 查询股票数据文件在startTime-endTime区间内的所有数据
      * 它节省ReadUtil大量无意义的时间,它非常的酷
+     * 并且使用并行流操作 把时间进一步优化
      *
      * @param startTime 2012_03_04
      * @param endTime   2012_03_05
@@ -176,7 +177,8 @@ public class QuicklyReadUtil {
      * 2天的数据 只需要29s
      */
     public static Map<String, List<StockTransactionInfo>> stockMap(long startTime, long endTime) {
-        return Stream.of(DAY_SH_DATA_FILE, FileConstant.DAY_SZ_DATA_FILE)
+        TimingClock timingClock = new TimingClock();
+        List<File> fileList = Stream.of(DAY_SH_DATA_FILE, FileConstant.DAY_SZ_DATA_FILE)
                 .map(File::new)
                 .map(File::listFiles)
                 .filter(Objects::nonNull)
@@ -184,25 +186,32 @@ public class QuicklyReadUtil {
                 .reduce(new ArrayList<>(), (l, r) -> {
                     l.addAll(r);
                     return l;
-                }).stream()
+                });
+        timingClock.call("finish get file list:");
+        List<List<StockTransactionInfo>> listList = fileList
+                .stream()
+                .parallel()
                 .map(file -> readStockBySection(file, startTime, endTime))
-                .reduce(new ArrayList<>(), (l, r) -> {
-                    l.addAll(r);
-                    return l;
-                }).stream()
-                .collect(Collectors.groupingBy(StockTransactionInfo::getCode));
+                .collect(Collectors.toList());
+        timingClock.call("finish read stock by section:");
+        List<StockTransactionInfo> stockInfoList = listList.stream().reduce(new ArrayList<>(), (l, r) -> {
+            l.addAll(r);
+            return l;
+        });
+        timingClock.call("finish union list: ");
+        Map<String, List<StockTransactionInfo>> collect = stockInfoList.stream().collect(Collectors.groupingBy(StockTransactionInfo::getCode));
+        timingClock.call("finish union to group by: ");
+        return collect;
     }
 
+    //如果收集2020_01_01 - 2020_05_05 的数据,需要 50秒左右
+    //如果收集2020_01_01 - 2020_05_05 的数据， 需要146秒
     public static void main(String... args) {
         long time1 = System.currentTimeMillis();
-        Map<String, List<StockTransactionInfo>> stringListMap = stockMap(2020_01_01, 2020_01_05);
+        Map<String, List<StockTransactionInfo>> stringListMap = stockMap(2015_01_01, 2020_05_05);
         long time2 = System.currentTimeMillis();
-        System.out.println(time2 - time1);
-/*
-        stringListMap.forEach((k, v) -> {
-            System.out.println(v);
-        });
-*/
+        System.out.println("spend all time:" + (time2 - time1));
+        System.out.println("o");
     }
 
 

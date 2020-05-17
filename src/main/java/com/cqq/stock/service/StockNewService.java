@@ -89,11 +89,9 @@ public class StockNewService {
 
     public void syncDataByDesk(long startDateL1) {
         int endDateL1 = TimeUtil.getDatetime();
-        log.info("get stock info from desk, maybe need 30,000ms");
-        long time1 = System.currentTimeMillis();
+        TimingClock timingClock = new TimingClock("get stock info from desk, maybe need 30,000ms");
         Map<String, List<StockTransactionInfo>> deskMap = QuicklyReadUtil.stockMap(startDateL1, endDateL1);
-        long time2 = System.currentTimeMillis();
-        log.info("get stock from desk success, real need:" + (time2 - time1) + "ms");
+        timingClock.call("get stock from desk success, real need:");
         if (deskMap.keySet().size() == 0) {
             log.info("nothing !!!!!!!!!!!!! what hanpend ?");
             return;
@@ -101,42 +99,55 @@ public class StockNewService {
         deleteData(startDateL1, endDateL1);
         long startDateL2 = TimeUtil.offset(startDateL1, 60);
         long endDateL2 = TimeUtil.offset(startDateL1, 1);
-        log.info("get stock from db begin");
-        long time3 = System.currentTimeMillis();
+        TimingClock clock2 = new TimingClock("get stock from db begin");
         List<StockTransactionInfo> dbList = stockService.getListBetween(startDateL2, endDateL2);
-        long time4 = System.currentTimeMillis();
-        log.info("get stock from db success, speed {} ms", time4 - time3);
+
+        clock2.call("get stock from db success, speed: ");
+
         Map<String, List<StockTransactionInfo>> dbMap = dbList.stream()
                 .collect(Collectors.groupingBy(StockTransactionInfo::getCode));
-        Set<String> deskKey = deskMap.keySet();
-        List<CalculateStockTransactionInfo> allList = unionMap(deskMap, dbMap, deskKey);
-        List<StockAble> lis = allList.stream().filter(s -> s.getDate() >= startDateL1 && s.getDate() <= endDateL1).collect(Collectors.toList());
-        long time5 = System.currentTimeMillis();
-        log.info("reshape data spend time: {} ms", time5 - time4);
-        ArrayGroupUtil.batch(lis,20000).forEach(QuicklyInsertUtil::quicklySaveToDatabase);
-//        stockTransactionInfoService.saveBatch(lis,20000);
-        long time6 = System.currentTimeMillis();
-        log.info("save data spend time: {} ms", time6 - time5);
+
+        clock2.call("List<StockTransactionInfo> group by time:");
+
+        List<CalculateStockTransactionInfo> allList = unionMap(deskMap, dbMap);
+        deskMap = null;
+        dbMap = null;
+
+        clock2.call("unionMap time:");
+
+
+        ArrayGroupUtil.batchDoing(allList,100_0000, QuicklyInsertUtil::quicklySaveToDatabaseCalculateStockTransactionInfo);
+
+        clock2.call("save data spend time: ");
 
 
     }
 
-    private List<CalculateStockTransactionInfo> unionMap(Map<String, List<StockTransactionInfo>> deskMap, Map<String, List<StockTransactionInfo>> dbMap, Set<String> deskKey) {
-        List<CalculateStockTransactionInfo> list = new ArrayList<>();
-        for (String code : deskKey) {
+    private List<CalculateStockTransactionInfo> unionMap(Map<String, List<StockTransactionInfo>> deskMap, Map<String, List<StockTransactionInfo>> dbMap) {
+        Set<String> deskKey = deskMap.keySet();
+        TimingClock timingClock = new TimingClock("start union");
+        List<List<CalculateStockTransactionInfo>> collect = deskKey.stream().parallel().map(code -> {
             List<StockTransactionInfo> tempDeskList = deskMap.get(code);
             List<StockTransactionInfo> tempDbList = dbMap.get(code);
-            if (tempDeskList == null) {
-                continue;
-            }
             if (tempDbList != null) {
-                tempDeskList.addAll(tempDbList);
+                if (tempDeskList != null) {
+
+                    tempDeskList.addAll(tempDbList);
+                }
             }
             tempDeskList.sort(Comparator.comparing(StockTransactionInfo::getDate));
             List<CalculateStockTransactionInfo> main = CciUtil.main(tempDeskList);
-            list.addAll(main);
-        }
-        return list;
+//            List<CalculateStockTransactionInfo> list = new ArrayList<>(main);
+            return main;
+
+        }).collect(Collectors.toList());
+        List<CalculateStockTransactionInfo> result = collect.stream().reduce(new ArrayList<>(), (l, r) -> {
+            l.addAll(r);
+            return l;
+        });
+
+        return result;
+
     }
 
     private void deleteData(long startDateL1, int endTimeL1) {

@@ -1,6 +1,5 @@
 package com.cqq.stock.entity;
 
-import com.sun.deploy.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -111,7 +110,7 @@ public class GoodPricePoint implements Serializable {
     }
 
     public double getSuccessRate() {
-        return buySaleTime == 0 ? -1.0 : earnTime*1.0 / buySaleTime;
+        return buySaleTime == 0 ? -1.0 : earnTime * 1.0 / buySaleTime;
     }
 
     public double getAvgEarn() {
@@ -130,7 +129,7 @@ public class GoodPricePoint implements Serializable {
         } else if (lastPrice > salePrice) {
             hint.add("可以考虑卖出!");
         }
-        return StringUtils.join(hint, ",");
+        return String.join(",", hint);
     }
 
     public double getLastPrice() {

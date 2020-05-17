@@ -1,5 +1,6 @@
 package com.cqq.stock.service;
 
+import com.cqq.stock.util.TimingClock;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,11 @@ public class PythonService {
 
     public void call(String date) throws IOException, InterruptedException {
         String exe = "python";
-        String command = "D:\\code\\python\\pycharm_workspace\\derivatives\\coorV2.py";
+        String command = "C:\\desk\\code\\python\\derivatives\\coorV2.py";
 //        String num1 = ;
 //        String num2 = "2";
         String[] cmdArr = new String[]{exe, command, date};
+        TimingClock timingClock = new TimingClock("python call");
         Process process = Runtime.getRuntime().exec(cmdArr);
         InputStream is = process.getInputStream();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
@@ -28,5 +30,6 @@ public class PythonService {
             System.out.println(str);
         }
         process.waitFor();
+        timingClock.call("python call over");
     }
 }

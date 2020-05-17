@@ -1,6 +1,10 @@
 package com.cqq.stock.entity;
 
-import javafx.util.Pair;
+//import javafx.util.Pair;
+
+//import javafx.util.Pair;
+
+//import com.sun.tools.javac.util.Pair;
 
 import java.util.HashMap;
 import java.util.Map;

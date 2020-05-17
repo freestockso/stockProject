@@ -22,7 +22,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
 
     private StockService stockService;
 
-    public void trans(String code) throws Exception {
+    public void makeDataByCode(String code) throws Exception {
         List<StockTransactionInfo> stockInfoList = stockService.getCciListByCode(code);
         if (stockInfoList.isEmpty()) {
             log.info("data not enough, sorry! ");
