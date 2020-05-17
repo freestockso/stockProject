@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * 经典的CCI计算工具类
  */
 public class CciUtil {
-    private static final int N = 14;
+    private static final int N = 20;
 
     /**
      * 传入某只股票的信息 2N 以上的 信息， 返回被CCI计算过的结果
@@ -25,15 +25,15 @@ public class CciUtil {
                 .map(CalculateStockTransactionInfo::new)
                 .peek(CciUtil::tp).collect(Collectors.toList());
 
-        for (int i = N; i < stockList.size(); i++) {
+        for (int i = N - 1; i < stockList.size(); i++) {
             CalculateStockTransactionInfo calculateStockTransactionInfo = stockList.get(i);
             CciUtil.ma(stockList.subList(i - N + 1, i + 1), calculateStockTransactionInfo);
         }
-        for (int i = N + N; i < stockList.size(); i++) {
+        for (int i = N - 1; i < stockList.size(); i++) {
             CalculateStockTransactionInfo calculateStockTransactionInfo = stockList.get(i);
             CciUtil.md(stockList.subList(i - N + 1, i + 1), calculateStockTransactionInfo);
         }
-        for (int i = N + N; i < stockList.size(); i++) {
+        for (int i = N - 1; i < stockList.size(); i++) {
             CalculateStockTransactionInfo calculateStockTransactionInfo = stockList.get(i);
             CciUtil.cci(calculateStockTransactionInfo);
         }
@@ -60,11 +60,11 @@ public class CciUtil {
      * 返回这只股票 最高价+最低价+收盘价的平均数
      */
     public static void tp(CalculateStockTransactionInfo calculateStockTransactionInfo) {
-        calculateStockTransactionInfo.setTp((
-                calculateStockTransactionInfo.getHigh()
-                        + calculateStockTransactionInfo.getLow()
-                        + calculateStockTransactionInfo.getClose()
-        ) / 3);
+        long sum = calculateStockTransactionInfo.getHigh()
+                + calculateStockTransactionInfo.getLow()
+                + calculateStockTransactionInfo.getClose();
+        long tp = sum / 3 + (sum % 3 >= 1 ? 1 : 0);
+        calculateStockTransactionInfo.setTp(tp);
     }
 
     /**

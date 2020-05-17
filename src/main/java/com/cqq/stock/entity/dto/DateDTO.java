@@ -5,8 +5,9 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class CallDTO {
+public class DateDTO {
     @NotNull(message = "date not null")
-    private long date;
+    private Long date;
+
 
 }

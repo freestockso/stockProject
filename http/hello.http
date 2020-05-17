@@ -1,0 +1,21 @@
+POST http://localhost:8437/stockForecasting/list
+Content-Type: application/json
+
+{
+  "date": 20200108
+
+}
+
+###
+
+POST http://localhost:8437/stockNew/rate
+Content-Type: application/json
+
+{
+  "code": "sh501309",
+  "date": 20200108
+
+}
+
+###
+

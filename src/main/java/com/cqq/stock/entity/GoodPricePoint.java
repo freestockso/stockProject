@@ -1,10 +1,10 @@
 package com.cqq.stock.entity;
 
-import com.sun.deploy.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 好的买卖点
@@ -130,7 +130,7 @@ public class GoodPricePoint implements Serializable {
         } else if (lastPrice > salePrice) {
             hint.add("可以考虑卖出!");
         }
-        return StringUtils.join(hint, ",");
+        return hint.stream().collect(Collectors.joining(","));
     }
 
     public double getLastPrice() {

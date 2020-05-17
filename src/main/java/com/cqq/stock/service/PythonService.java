@@ -15,12 +15,23 @@ import java.io.InputStreamReader;
 public class PythonService {
 
 
-    public void call(String date) throws IOException, InterruptedException {
+    public void call(long date) throws IOException, InterruptedException {
+        callPython("D:\\code\\python\\pycharm_workspace\\derivatives\\coorV2.py", date + "");
+    }
+
+    public void callOne(String code, String date) throws Exception {
+        callPython("D:\\code\\python\\pycharm_workspace\\derivatives\\calOne.py", code, date);
+
+    }
+
+    private void callPython(String command, String... param) throws IOException, InterruptedException {
         String exe = "python";
-        String command = "D:\\code\\python\\pycharm_workspace\\derivatives\\coorV2.py";
-//        String num1 = ;
-//        String num2 = "2";
-        String[] cmdArr = new String[]{exe, command, date};
+        String[] cmdArr = new String[param.length + 2];
+        cmdArr[0] = exe;
+        cmdArr[1] = command;
+        for (int i = 0; i < param.length; i++) {
+            cmdArr[i + 2] = param[i];
+        }
         Process process = Runtime.getRuntime().exec(cmdArr);
         InputStream is = process.getInputStream();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));

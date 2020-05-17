@@ -17,16 +17,16 @@ public class SynchronizeDataTimer {
     private NoticeService noticeService;
     private StockNewService stockNewService;
 
+//    private StockNewService stockNewService;
+
     /**
      * 每天下午3:30执行一次
      * 数据同步的定时任务,每次把最新的数据同步到库中
      */
     @Scheduled(cron = "0 30 15 * * ?")
     public void syncData() {
-        stockNewService.syncDataFromNetwork(true);
+        stockNewService.process();
     }
-
-
 
 
     /**
@@ -41,7 +41,7 @@ public class SynchronizeDataTimer {
     /**
      * 提醒用户出售的定时任务
      */
-    @Scheduled(cron = "0 30/2 9-13 * * ?")
+//    @Scheduled(cron = "0 30/2 9-13 * * ?")
     public void noticeToSale() {
 
         noticeService.noticeToSale(null);
@@ -52,7 +52,7 @@ public class SynchronizeDataTimer {
      * 提醒用户出售的定时任务
      */
 //    @Scheduled(cron = "0 30/2 9-13 * * ?")
-    @Scheduled(cron = "0 30/1 * * * ?")
+//    @Scheduled(cron = "0 30/1 * * * ?")
     public void noticeToBuy() {
         noticeService.noticeToBuy(null);
 

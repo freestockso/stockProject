@@ -1,3 +1,4 @@
+
 spring:
   profiles:
     active: dev
@@ -7,8 +8,8 @@ mybatis:
   mapperLocations: classpath:mapper/*.xml
   configuration:
     mapUnderscoreToCamelCase: true
-
-
+server:
+  port: 8437
 ---
 
 spring:
