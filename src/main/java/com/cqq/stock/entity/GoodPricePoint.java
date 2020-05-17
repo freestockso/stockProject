@@ -4,6 +4,7 @@ package com.cqq.stock.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 好的买卖点

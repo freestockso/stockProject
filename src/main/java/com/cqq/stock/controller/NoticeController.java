@@ -2,6 +2,7 @@ package com.cqq.stock.controller;
 
 import com.cqq.stock.entity.ListEntity;
 import com.cqq.stock.entity.StockInfo;
+import com.cqq.stock.interfaces.Example;
 import com.cqq.stock.service.NoticeService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ public class NoticeController {
 
     private NoticeService noticeService;
 
+    @Example
     @GetMapping("noticeToBuy")
     public ListEntity<StockInfo> noticeToBuy(String code) {
         return noticeService.noticeToBuy(code);

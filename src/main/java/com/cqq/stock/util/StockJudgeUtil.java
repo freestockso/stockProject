@@ -84,4 +84,27 @@ public class StockJudgeUtil {
         System.out.println("lowCount:" + (lowCount) + " highCount:" + (highCount));
         System.out.println("lowCount:" + (lowCount == lowMatchCount) + " highCount:" + (0 == highCount));
     }
+
+    private static List<String> notBuyList = new ArrayList<>();
+    private static Pattern notBuyPattern;
+
+    static {
+        notBuyList.add("sh88");
+        notBuyList.add("sz16[0-8]");
+        notBuyList.add("sz15");
+        notBuyList.add("sh51[0-5]");
+        String regex = notBuyList.stream().map(s -> "(" + s + ")").collect(Collectors.joining("|"));
+        notBuyPattern = Pattern.compile(regex);
+    }
+
+    /**
+     * 哪几类股票是不买的
+     *
+     * @param code
+     * @return
+     */
+    public static boolean notBuy(String code) {
+        Matcher matcher = notBuyPattern.matcher(code);
+        return matcher.find();
+    }
 }

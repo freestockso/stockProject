@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.min;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 @AllArgsConstructor
@@ -141,11 +142,6 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         }).collect(Collectors.toList());
     }
 
-    public String syncDataFrom2DatabaseNetwork() {
-
-
-        return "success";
-    }
 
     /**
      * 从现在的网络中获取股票的实时数据
@@ -166,13 +162,14 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
         return stockTransactionInfoMapper.delete(Wrappers.<StockTransactionInfo>query().lambda().eq(StockTransactionInfo::getDate, date)) > 0;
     }
 
-    public boolean deleteBetweenDate(long startDate,long endDate) {
+    public boolean deleteBetweenDate(long startDate, long endDate) {
         return stockTransactionInfoMapper.delete(
                 Wrappers.<StockTransactionInfo>query().lambda()
                         .ge(StockTransactionInfo::getDate, startDate)
                         .le(StockTransactionInfo::getDate, endDate)
         ) > 0;
     }
+
     public List<StockRecent> getToDayAllStockRecentByCodeList() {
         return StockInfoAdapter.getStockRecentByCodeList(this.getAllCodeList());
     }
@@ -477,7 +474,7 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
 
 
     public List<StockTransactionInfo> getListAfterDate(long date) {
-        return this.stockTransactionInfoMapper.selectList(Wrappers.<StockTransactionInfo>query().lambda().gt(StockTransactionInfo::getDate, date));
+        return this.stockTransactionInfoMapper.selectList(Wrappers.<StockTransactionInfo>query().lambda().ge(StockTransactionInfo::getDate, date));
     }
 
     public List<StockTransactionInfo> getListBetween(long startDate, long endDate) {
@@ -486,5 +483,28 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
                         .ge(StockTransactionInfo::getDate, startDate)
                         .le(StockTransactionInfo::getDate, endDate)
         );
+    }
+
+    public List<String> selectCCILowByDate(long date) {
+        List<StockTransactionInfo> list = this.stockTransactionInfoMapper.selectList(
+                Wrappers.<StockTransactionInfo>query().lambda()
+                        .eq(StockTransactionInfo::getDate, date)
+                        .le(StockTransactionInfo::getCci, -70)
+        );
+        return list.stream().map(StockTransactionInfo::getCode).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    public List<StockTransactionInfo> getStockTransactionInfoByCode(List<String> codeList) {
+        return this.stockTransactionInfoMapper.selectList(
+                Wrappers.<StockTransactionInfo>lambdaQuery().in(StockTransactionInfo::getCode, codeList)
+        );
+    }
+
+    public Map<String, StockTransactionInfo> selectByCodeListAndDate(List<String> codeList, long date) {
+        LambdaQueryWrapper<StockTransactionInfo> eq = Wrappers.<StockTransactionInfo>query().lambda()
+                .eq(StockTransactionInfo::getDate, date)
+                .in(StockTransactionInfo::getCode, codeList);
+        List<StockTransactionInfo> list = stockTransactionInfoMapper.selectList(eq);
+        return list.stream().collect(toMap(StockTransactionInfo::getCode, s->s));
     }
 }

@@ -129,4 +129,13 @@ public class StockTransactionInfo implements StockAble {
                 '}';
     }
 
+    public StockTransactionInfo() {
+    }
+
+    public StockTransactionInfo(Long open, Long high, Long close, Long low) {
+        this.open = open;
+        this.close = close;
+        this.high = high;
+        this.low = low;
+    }
 }

@@ -66,9 +66,6 @@ public class StockController {
         return stockService.getCanBuyAndGoUpStock();
     }
 
-    public String syncDataFrom2DatabaseNetwork() {
-        return stockService.syncDataFrom2DatabaseNetwork();
-    }
 
     public List<StockTransactionInfo> getCciListByCode(String code) {
         return stockService.getCciListByCode(code);
