@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static com.cqq.stock.util.StockResultUtil.getValueList;
 import static java.lang.Math.min;
 import static java.util.stream.Collectors.toMap;
 
@@ -515,6 +517,46 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
     }
 
     public Page<StockData> listByCondition(StockListCondition condition) {
+        if (condition.getSortByScore() == null || !condition.getSortByScore()) {
+            return getStockDataPageInDB(condition);
+        } else {
+            Integer newDate = this.stockTransactionInfoMapper.findMaxDate();
+            File root = new File("D:\\newstock\\{date}\\result".replace("{date}", String.valueOf(newDate)));
+            if (!root.exists()) {
+                return new Page<>();
+            }
+            File[] files = root.listFiles();
+            if (files == null) {
+                return new Page<>();
+            }
+            Map<String, Double> code2Score = new HashMap<>();
+            for (File file : files) {
+
+                List<Double> valueList = getValueList(file);
+                double sum = 0;
+                for (int i = 0; i < 20; i++) {
+                    sum += valueList.get(i) * (i - 9.5);
+                }
+                String name = file.getName();
+                name = name.substring(0, name.indexOf('.'));
+                code2Score.put(name, sum);
+            }
+            List<StockTransactionInfo> stockTransactionInfoList = this.stockTransactionInfoMapper
+                    .selectList(Wrappers.<StockTransactionInfo>query().lambda().eq(StockTransactionInfo::getDate, newDate))
+                    .stream()
+                    .filter(s -> code2Score.get(s.getCode()) != null)
+                    .sorted(Comparator.comparing(s -> code2Score.get(s.getCode())))
+                    .collect(Collectors.toList());
+            List<StockData> res = stockTransactionInfoList.stream().map(s -> {
+                StockData stockData = new StockData(s);
+                stockData.setStatus(StockStatusEnum.DONE.getValue());
+                return stockData;
+            }).collect(Collectors.toList());
+            return PageUtil.page(res, condition.getCurrent(), condition.getLimit());
+        }
+    }
+
+    private Page<StockData> getStockDataPageInDB(StockListCondition condition) {
         Integer newDate = this.stockTransactionInfoMapper.findMaxDate();
         List<StockInfo> stockInfos = this.stockInfoMapper.selectList(null);
         Map<String, String> codeToName = stockInfos.stream().distinct().collect(toMap(StockInfo::getCode, StockInfo::getName));

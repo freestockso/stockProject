@@ -12,4 +12,6 @@ public class GetResultDTO {
 
     @NotNull(message = "code not null")
     private String code;
+
+
 }

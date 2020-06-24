@@ -25,6 +25,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.cqq.stock.util.StockResultUtil.getValueList;
+
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -80,7 +82,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
     }
 
     public List<StockVO> getData(long date) {
-        File dir = new File("D:\\newstock\\" + date + "\\result\\");
+        File dir = new File("D:\\newstock\\{date}\\result\\".replace("{date}", String.valueOf(date)));
         File[] files = dir.listFiles();
         if (files == null) {
             return new ArrayList<>();
@@ -173,27 +175,10 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
         if (!file.exists()) {
             return IntStream.range(0, 20).mapToObj(s -> 0D).collect(Collectors.toList());
         }
-        List<String> list = FileUtil.readLines(file);
-        return list.stream().map(s -> {
-            String all = "";
-            boolean start = false;
-            for (int i = s.length() - 1; i >= 0; i--) {
-                char c = s.charAt(i);
-                if (start && !(c == '.' || (c >= '0' && c <= '9'))) {
-                    break;
-
-                }
-                if (c == '.' || (c >= '0' && c <= '9')) {
-                    start = true;
-                    all = c + all;
-                }
-
-            }
-            return all;
-        }).map(Double::valueOf)
-                .collect(Collectors.toList());
+        return getValueList(file);
 
     }
+
 
     public List<String> status(StatusDTO statusDTO) {
         Set<String> prepareSet = getSet(statusDTO.getDate(), "D:\\newstock\\{date}\\logicX");

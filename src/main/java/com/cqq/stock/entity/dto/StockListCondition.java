@@ -11,4 +11,6 @@ public class StockListCondition implements PageAble {
     private Double maxPrice;
     private Double minCCI;
     private Double maxCCI;
+
+    private Boolean sortByScore;
 }
