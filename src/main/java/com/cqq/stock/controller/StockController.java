@@ -1,14 +1,14 @@
 package com.cqq.stock.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cqq.stock.entity.*;
+import com.cqq.stock.entity.dto.StockListCondition;
+import com.cqq.stock.entity.vo.StockData;
 import com.cqq.stock.service.StockService;
 import com.cqq.stock.util.AnalysisUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +29,12 @@ public class StockController {
     }
 
     static int cnt = 0;
+
+    @PostMapping("list")
+    public Page<StockData> list(@RequestBody StockListCondition condition) {
+        return stockService.listByCondition(condition);
+
+    }
 
     @RequestMapping("test")
     public String test() {

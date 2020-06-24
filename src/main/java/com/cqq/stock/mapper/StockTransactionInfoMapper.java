@@ -31,4 +31,6 @@ public interface StockTransactionInfoMapper extends BaseMapper<StockTransactionI
     @Select("select * from ${tableName} ")
     List<StockTransactionInfo> selectAll(@Param("tableName") String tableName);
 
+    @Select("select max(date) from stock_transaction_info;")
+    Integer findMaxDate();
 }

@@ -3,6 +3,9 @@ package com.cqq.stock.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
+import lombok.Data;
+
+import java.util.Objects;
 
 public class StockInfo extends Model<StockInfo> {
 
@@ -124,5 +127,18 @@ public class StockInfo extends Model<StockInfo> {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        StockInfo stockInfo = (StockInfo) object;
+        return code.equals(stockInfo.code);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code);
     }
 }

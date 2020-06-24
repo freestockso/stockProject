@@ -2,15 +2,17 @@ package com.cqq.stock.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.cqq.stock.entity.Stock;
 import com.cqq.stock.entity.StockForecasting;
 import com.cqq.stock.entity.StockInfo;
 import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.entity.dto.GetResultDTO;
+import com.cqq.stock.entity.dto.StatusDTO;
 import com.cqq.stock.entity.vo.StockVO;
+import com.cqq.stock.enums.StockStatusEnum;
 import com.cqq.stock.mapper.StockForecastingMapper;
 import com.cqq.stock.mapper.StockTransactionInfoMapper;
+import com.cqq.stock.util.FileUtil;
 import com.cqq.stock.util.MakeDataUtil;
-import com.cqq.stock.util.TimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -65,6 +68,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
             MakeDataUtil.generateY(list, date, code);
             MakeDataUtil.generateTestData(list, date, code);
             MakeDataUtil.generateY(list, date, code);
+            MakeDataUtil.generateOtherDir(date);
             long time4 = System.currentTimeMillis();
             log.info("make data:{}ms", time4 - time3);
             pythonService.callOne(code, date);
@@ -90,7 +94,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
 
         Map<String, StockTransactionInfo> stockMap = stockService.selectByCodeListAndDate(codeList, date);
 
-        List<StockVO> list = stockInfoList.stream()
+        return stockInfoList.stream()
                 .map(s -> {
                     StockVO stockVO = new StockVO();
                     stockVO.setCode(s.getCode().substring(2));
@@ -104,8 +108,6 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
                 })
                 .sorted((o1, o2) -> o2.getRate().compareTo(o1.getRate()))
                 .collect(Collectors.toList());
-
-        return list;
     }
 
     /**
@@ -161,5 +163,65 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
             }
         }
         return high / (low + high);
+    }
+
+    public List<Double> getResult(GetResultDTO getResultDTO) {
+        File file = new File("D:\\newstock\\{date}\\result\\{code}.txt"
+                .replace("{date}", getResultDTO.getDate().toString())
+                .replace("{code}", getResultDTO.getCode())
+        );
+        if (!file.exists()) {
+            return IntStream.range(0, 20).mapToObj(s -> 0D).collect(Collectors.toList());
+        }
+        List<String> list = FileUtil.readLines(file);
+        return list.stream().map(s -> {
+            String all = "";
+            boolean start = false;
+            for (int i = s.length() - 1; i >= 0; i--) {
+                char c = s.charAt(i);
+                if (start && !(c == '.' || (c >= '0' && c <= '9'))) {
+                    break;
+
+                }
+                if (c == '.' || (c >= '0' && c <= '9')) {
+                    start = true;
+                    all = c + all;
+                }
+
+            }
+            return all;
+        }).map(Double::valueOf)
+                .collect(Collectors.toList());
+
+    }
+
+    public List<String> status(StatusDTO statusDTO) {
+        Set<String> prepareSet = getSet(statusDTO.getDate(), "D:\\newstock\\{date}\\logicX");
+        Set<String> okSet = getSet(statusDTO.getDate(), "D:\\newstock\\{date}\\result");
+        return statusDTO.getCode().stream()
+                .map(s -> getStatus(s, prepareSet, okSet))
+                .collect(Collectors.toList());
+
+    }
+
+    private String getStatus(String code, Set<String> prepareSet, Set<String> okSet) {
+        if (okSet.contains(code)) {
+            return StockStatusEnum.DONE.getValue();
+        }
+        if (prepareSet.contains(code)) {
+            return StockStatusEnum.DOING.getValue();
+        }
+        return StockStatusEnum.TODO.getValue();
+    }
+
+    private Set<String> getSet(Integer newDate, String s2) {
+        File file = new File(s2.replace("{date}", newDate.toString()));
+        if (file.listFiles() == null) {
+            return new HashSet<>();
+        }
+        return Arrays.stream(((Objects.requireNonNull(file.listFiles()))))
+                .map(File::getName)
+                .map(s -> s.substring(0, s.indexOf('.')))
+                .collect(Collectors.toSet());
     }
 }

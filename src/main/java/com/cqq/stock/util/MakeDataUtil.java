@@ -21,7 +21,8 @@ public class MakeDataUtil {
     }
 
     public static void generateX(List<StockTransactionInfo> collect, String date, String code) throws IOException {
-        BufferedWriter bx = FileUtil.getBufferWriter("D:\\newstock\\" + date + "\\logicX\\" + code + ".txt");
+//        BufferedWriter bx = FileUtil.getBufferWriter("D:\\newstock\\" + date + "\\logicX\\" + code + ".txt");
+        BufferedWriter bx = FileUtil.getBufferWriter(getLogicXPath(date, code));
         if (bx == null) return;
         for (int i = 14; i < collect.size(); i++) {
             for (int j = i - 14; j < i; j++) {
@@ -35,8 +36,9 @@ public class MakeDataUtil {
         bx.close();
     }
 
+
     public static void generateY(List<StockTransactionInfo> collect, String date, String code) throws IOException {
-        BufferedWriter by = FileUtil.getBufferWriter("D:\\newstock\\" + date + "\\logicY\\" + code + ".txt");
+        BufferedWriter by = FileUtil.getBufferWriter(logicYPath(date, code));
         if (by == null) return;
         for (int i = 14; i < collect.size(); i++) {
 
@@ -55,8 +57,9 @@ public class MakeDataUtil {
         by.close();
     }
 
+
     public static void generateTestData(List<StockTransactionInfo> stockCalculates, String date, String code) throws Exception {
-        BufferedWriter bx = FileUtil.getBufferWriter("D:\\newstock\\" + date + "\\logicZ\\" + code + ".txt");
+        BufferedWriter bx = FileUtil.getBufferWriter(getLogicZ(date, code));
         if (bx == null) return;
         int size = stockCalculates.size();
         stockCalculates.subList(size - 14, size).forEach(s -> {
@@ -67,5 +70,23 @@ public class MakeDataUtil {
             }
         });
         bx.close();
+    }
+
+    private static String getLogicZ(String date, String code) {
+        return "D:\\newstock\\{date}\\logicZ\\{code}.txt"
+                .replace("{date}", date)
+                .replace("{code}", code);
+    }
+
+    private static String getLogicXPath(String date, String code) {
+        return "D:\\newstock\\{date}\\logicX\\{code}.txt"
+                .replace("{date}", date)
+                .replace("{code}", code);
+    }
+
+    private static String logicYPath(String date, String code) {
+        return "D:\\newstock\\{date}\\logicY\\{code}.txt"
+                .replace("{date}", date)
+                .replace("{code}", code);
     }
 }

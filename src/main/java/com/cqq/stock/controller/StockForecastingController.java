@@ -1,8 +1,6 @@
 package com.cqq.stock.controller;
 
-import com.cqq.stock.entity.dto.CodeDTO;
-import com.cqq.stock.entity.dto.DateDTO;
-import com.cqq.stock.entity.dto.MakeDataDTO;
+import com.cqq.stock.entity.dto.*;
 import com.cqq.stock.entity.vo.R;
 import com.cqq.stock.service.StockForecastingService;
 import lombok.AllArgsConstructor;
@@ -19,6 +17,7 @@ import javax.validation.Valid;
 public class StockForecastingController {
 
     private StockForecastingService stockForecastingService;
+
     @PostMapping("makeDataByCode")
     public void makeDataByCode(@RequestBody MakeDataDTO makeDataDTO) throws Exception {
         stockForecastingService.makeDataByCode(makeDataDTO.getCode());
@@ -30,9 +29,27 @@ public class StockForecastingController {
         stockForecastingService.calculateOne(codeDTO.getCode(), codeDTO.getDate());
     }
 
+    @PostMapping("calculateOneSync")
+    public void calculateOneSync(@RequestBody @Valid CodeDTO codeDTO) {
+        new Thread(() -> {
+            stockForecastingService.calculateOne(codeDTO.getCode(), codeDTO.getDate());
+        }).start();
+
+    }
+
     @RequestMapping("list")
     public R list(@RequestBody @Valid DateDTO dateDTO) {
         return R.successData(stockForecastingService.getData(dateDTO.getDate()));
     }
 
+
+    @PostMapping("getResult")
+    public R getResult(@RequestBody @Valid GetResultDTO getResultDTO) {
+        return R.successData(stockForecastingService.getResult(getResultDTO));
+    }
+
+    @PostMapping("status")
+    public R status(@RequestBody @Valid StatusDTO statusDTO) {
+        return R.successData(stockForecastingService.status(statusDTO));
+    }
 }

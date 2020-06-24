@@ -1,9 +1,8 @@
 package com.cqq.stock.util;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 文件工具
@@ -34,6 +33,23 @@ public class FileUtil {
             e.printStackTrace();
         }
         return null;
+
+    }
+
+    public static List<String> readLines(File file) {
+        try {
+            List<String>list = new ArrayList<>();
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+            for(;;){
+                String s = bufferedReader.readLine();
+                if(s==null)break;
+                list.add(s);
+            }
+            return list;
+        } catch (IOException e) {
+
+            return new ArrayList<>();
+        }
 
     }
 }

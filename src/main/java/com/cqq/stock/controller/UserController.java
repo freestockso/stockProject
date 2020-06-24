@@ -12,6 +12,10 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @GetMapping("user/login")
+    public String userLogin(String username, String password) {
+        return userService.login(username, password);
+    }
 
     @GetMapping("login")
     public String login(String username, String password) {

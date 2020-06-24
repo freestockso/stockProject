@@ -1,10 +1,15 @@
 package com.cqq.stock.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cqq.stock.constants.StockConstant;
 import com.cqq.stock.entity.*;
+import com.cqq.stock.entity.dto.StockListCondition;
+import com.cqq.stock.entity.vo.StockData;
+import com.cqq.stock.enums.StockStatusEnum;
 import com.cqq.stock.mapper.StockInfoMapper;
 import com.cqq.stock.mapper.StockTransactionInfoMapper;
 import com.cqq.stock.util.*;
@@ -12,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -505,6 +511,55 @@ public class StockService extends ServiceImpl<StockInfoMapper, StockInfo> {
                 .eq(StockTransactionInfo::getDate, date)
                 .in(StockTransactionInfo::getCode, codeList);
         List<StockTransactionInfo> list = stockTransactionInfoMapper.selectList(eq);
-        return list.stream().collect(toMap(StockTransactionInfo::getCode, s->s));
+        return list.stream().collect(toMap(StockTransactionInfo::getCode, s -> s));
+    }
+
+    public Page<StockData> listByCondition(StockListCondition condition) {
+        Integer newDate = this.stockTransactionInfoMapper.findMaxDate();
+        List<StockInfo> stockInfos = this.stockInfoMapper.selectList(null);
+        Map<String, String> codeToName = stockInfos.stream().distinct().collect(toMap(StockInfo::getCode, StockInfo::getName));
+        IPage<StockTransactionInfo> page = this.stockTransactionInfoMapper.selectPage(PageUtil.toPage(condition),
+                Wrappers.<StockTransactionInfo>query().lambda()
+                        .eq(StockTransactionInfo::getDate, newDate)
+                        .le(Objects.nonNull(condition.getMaxPrice()), StockTransactionInfo::getClose, condition.getMaxPrice())
+                        .ge(Objects.nonNull(condition.getMinPrice()), StockTransactionInfo::getClose, condition.getMinPrice())
+                        .le(Objects.nonNull(condition.getMaxCCI()), StockTransactionInfo::getCci, condition.getMaxCCI())
+                        .ge(Objects.nonNull(condition.getMinCCI()), StockTransactionInfo::getCci, condition.getMinCCI())
+        );
+        Set<String> prepareSet = getSet(newDate, "D:\\newstock\\{date}\\logicX");
+        Set<String> okSet = getSet(newDate, "D:\\newstock\\{date}\\result");
+        List<StockData> result = page.getRecords().stream()
+                .map(StockData::new)
+                .peek(s -> {
+                    String name = codeToName.get(s.getCode());
+                    s.setName(name == null ? "unknown" : name);
+                }).peek(s -> {
+                    if (prepareSet.contains(s.getCode())) {
+                        s.setStatus(StockStatusEnum.DOING.getValue());
+                    }
+                }).peek(s -> {
+                    if (okSet.contains(s.getCode())) {
+                        s.setStatus(StockStatusEnum.DONE.getValue());
+                    }
+                })
+                .collect(Collectors.toList());
+
+        Page<StockData> stockDataPage = new Page<>();
+        stockDataPage.setRecords(result);
+        stockDataPage.setCurrent(page.getCurrent());
+        stockDataPage.setTotal(page.getTotal());
+        stockDataPage.setSize(page.getSize());
+        return stockDataPage;
+    }
+
+    private Set<String> getSet(Integer newDate, String s2) {
+        File file = new File(s2.replace("{date}", newDate.toString()));
+        if (file.listFiles() == null) {
+            return new HashSet<>();
+        }
+        return Arrays.stream(((Objects.requireNonNull(file.listFiles()))))
+                .map(File::getName)
+                .map(s -> s.substring(0, s.indexOf('.')))
+                .collect(Collectors.toSet());
     }
 }

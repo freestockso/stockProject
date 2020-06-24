@@ -15,13 +15,14 @@ import java.io.InputStreamReader;
 @AllArgsConstructor
 public class PythonService {
 
+    public static String PYTHON_PATH = "C:\\desk\\code\\python\\derivatives\\";
 
     public void call(long date) throws IOException, InterruptedException {
-        callPython("D:\\code\\python\\pycharm_workspace\\derivatives\\coorV2.py", date + "");
+        callPython(PYTHON_PATH + "coorV2.py", date + "");
     }
 
     public void callOne(String code, String date) throws Exception {
-        callPython("D:\\code\\python\\pycharm_workspace\\derivatives\\calOne.py", code, date);
+        callPython(PYTHON_PATH + "calOne.py", code, date);
 
     }
 
