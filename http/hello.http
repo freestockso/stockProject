@@ -31,3 +31,17 @@ Content-Type: application/json
 {}
 
 ###
+POST http://localhost:8437/sync/desk2DB
+Content-Type: application/json
+
+{}
+
+###
+POST http://localhost:8437/stockDayData/makeDataByCode
+Content-Type: application/json
+
+{
+  "code":"sz002012"
+}
+
+###

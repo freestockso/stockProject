@@ -1,6 +1,6 @@
 package com.cqq.stock.util;
 
-import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.able.MakeDataAble;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,9 +12,9 @@ import java.util.List;
  */
 public class MakeDataUtil {
 
-    public static void generateOtherDir(String date) {
-        File resultDir = new File("D:\\newstock\\" + date + "\\result\\");
-        File paramDir = new File("D:\\newstock\\" + date + "\\param\\");
+    public static void generateOtherDir(String date, String resultDirPath, String paramDirPath) {
+        File resultDir = new File(resultDirPath.replace("{date}", date));
+        File paramDir = new File(paramDirPath.replace("{date}", date));
         if (!resultDir.exists()) {
             resultDir.mkdirs();
         }
@@ -23,8 +23,7 @@ public class MakeDataUtil {
         }
     }
 
-    public static void generateX(List<StockTransactionInfo> collect, String date, String code) throws IOException {
-//        BufferedWriter bx = FileUtil.getBufferWriter("D:\\newstock\\" + date + "\\logicX\\" + code + ".txt");
+    public static <T extends MakeDataAble> void generateX(List<T> collect, String date, String code) throws IOException {
         BufferedWriter bx = FileUtil.getBufferWriter(getLogicXPath(date, code));
         if (bx == null) return;
         for (int i = 14; i < collect.size(); i++) {
@@ -40,13 +39,13 @@ public class MakeDataUtil {
     }
 
 
-    public static void generateY(List<StockTransactionInfo> collect, String date, String code) throws IOException {
+    public static <T extends MakeDataAble> void generateY(List<T> collect, String date, String code) throws IOException {
         BufferedWriter by = FileUtil.getBufferWriter(logicYPath(date, code));
         if (by == null) return;
         for (int i = 14; i < collect.size(); i++) {
 
-            double todayValue = collect.get(i).getClose().doubleValue();
-            double yesterDayValue = collect.get(i - 1).getClose().doubleValue();
+            double todayValue = collect.get(i).getClosePrice();
+            double yesterDayValue = collect.get(i - 1).getClosePrice();
             double rate = (todayValue - yesterDayValue) / yesterDayValue * 100;
             for (int j = -10; j <= 9; j++) {
                 if (j <= rate && rate <= j + 1) {
@@ -61,7 +60,7 @@ public class MakeDataUtil {
     }
 
 
-    public static void generateTestData(List<StockTransactionInfo> stockCalculates, String date, String code) throws Exception {
+    public static <T extends MakeDataAble> void generateTestData(List<T> stockCalculates, String date, String code) throws Exception {
         BufferedWriter bx = FileUtil.getBufferWriter(getLogicZ(date, code));
         if (bx == null) return;
         int size = stockCalculates.size();

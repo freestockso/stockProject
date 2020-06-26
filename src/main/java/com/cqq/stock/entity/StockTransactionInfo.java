@@ -3,12 +3,14 @@ package com.cqq.stock.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.cqq.stock.able.CCIAble;
+import com.cqq.stock.able.MakeDataAble;
 import com.cqq.stock.interfaces.StockAble;
 import lombok.Data;
 
 @Data
 @TableName("stock_transaction_info")
-public class StockTransactionInfo implements StockAble {
+public class StockTransactionInfo implements StockAble, MakeDataAble {
 
     @TableId(type = IdType.AUTO)
     private Integer id;
@@ -29,6 +31,12 @@ public class StockTransactionInfo implements StockAble {
     public Double getCci() {
         return cci;
     }
+
+    @Override
+    public Double getClosePrice() {
+        return cci;
+    }
+
 
     @Override
     public void setCci(Double value) {

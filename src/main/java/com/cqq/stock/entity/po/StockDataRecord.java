@@ -10,10 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @TableName("stock_day_record")
 public class StockDataRecord {
+
     @TableId(type = IdType.AUTO)
     private Integer id;
     private Integer date;
     private String msg;
+    private Integer inDb;
 
     public StockDataRecord(Integer date) {
         this.date = date;

@@ -13,10 +13,14 @@ public class SyncController {
 
     private TuShareSynchronizedDataTimer tuShareSynchronizedDataTimer;
 
-    @PostMapping("test")
+    @PostMapping("syncDataFromNetworkToDesk")
     public void test() {
         tuShareSynchronizedDataTimer.syncDataFromNetworkToDesk();
-
-
     }
+
+    @PostMapping("desk2DB")
+    public void desk2DB() {
+        tuShareSynchronizedDataTimer.desk2DB();
+    }
+
 }

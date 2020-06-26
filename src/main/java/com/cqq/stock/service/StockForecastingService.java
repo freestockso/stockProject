@@ -11,7 +11,6 @@ import com.cqq.stock.entity.vo.StockVO;
 import com.cqq.stock.enums.StockStatusEnum;
 import com.cqq.stock.mapper.StockForecastingMapper;
 import com.cqq.stock.mapper.StockTransactionInfoMapper;
-import com.cqq.stock.util.FileUtil;
 import com.cqq.stock.util.MakeDataUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
         MakeDataUtil.generateX(stockInfoList, dirName, code);
         MakeDataUtil.generateY(stockInfoList, dirName, code);
         MakeDataUtil.generateTestData(stockInfoList, dirName, code);
-        MakeDataUtil.generateOtherDir(dirName);
+        MakeDataUtil.generateOtherDir(dirName, "D:\\newstock\\{date}\\result\\", "D:\\newstock\\{date}\\param\\");
     }
 
     private StockTransactionInfoMapper stockTransactionInfoMapper;
@@ -70,7 +69,7 @@ public class StockForecastingService extends ServiceImpl<StockForecastingMapper,
             MakeDataUtil.generateY(list, date, code);
             MakeDataUtil.generateTestData(list, date, code);
             MakeDataUtil.generateY(list, date, code);
-            MakeDataUtil.generateOtherDir(date);
+            MakeDataUtil.generateOtherDir(date, "D:\\newstock\\{date}\\result\\", "D:\\newstock\\{date}\\param\\");
             long time4 = System.currentTimeMillis();
             log.info("make data:{}ms", time4 - time3);
             pythonService.callOne(code, date);

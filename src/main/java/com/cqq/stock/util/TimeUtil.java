@@ -87,22 +87,22 @@ public class TimeUtil {
 
 
     // 2019_12_23
-    public static long offset(long date, int basis) {
-        int year = (int) (date / 10000);
-        int day = (int) (date % 100);
-        int month = (int) ((date / 100) % 100);
-//        Date date1 = new Date(year,month,day);
+
+    /**
+     * 向前偏移多少天
+     * @param date  20200308
+     * @param basis 7
+     * @return 20200301
+     */
+    public static long offsetLeft(long date, int basis) {
         Calendar instance = Calendar.getInstance();
-        instance.set(year, month - 1, day, 0, 0);
+        int month = (int) ((date / 100) % 100) - 1;
+        instance.set((int) (date / 10000), month, (int) (date % 100));
         long timeInMillis = instance.getTimeInMillis();
         timeInMillis -= basis * 24 * 60 * 60 * 1000L;
-        Date d = new Date(timeInMillis);
-        Calendar instance1 = Calendar.getInstance();
-        instance1.setTime(d);
-        int beforeYear = instance1.get(Calendar.YEAR);
-        int beforeMonth = instance1.get(Calendar.MONTH) + 1;
-        int beforeDate = instance1.get(Calendar.DATE);
-        // 30/5*7 = 42  60
-        return beforeYear * 10000 + beforeMonth * 100 + beforeDate;
+        Date date1 = new Date();
+        date1.setTime(timeInMillis);
+        String yyyyMMdd = new SimpleDateFormat("yyyyMMdd").format(date1);
+        return Long.parseLong(yyyyMMdd);
     }
 }

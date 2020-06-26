@@ -60,7 +60,7 @@ public class StockNewService {
         long time1 = System.currentTimeMillis();
         //3-4 minutes
         log.info("start get list After Date");
-        List<StockTransactionInfo> afterDate = this.stockService.getListAfterDate(TimeUtil.offset(date, 60));
+        List<StockTransactionInfo> afterDate = this.stockService.getListAfterDate(TimeUtil.offsetLeft(date, 60));
         long time2 = System.currentTimeMillis();
         System.out.println("get stock spend time:" + (time2 - time1));
         Map<String, List<StockTransactionInfo>> listMap = afterDate.stream().collect(Collectors.groupingBy(StockTransactionInfo::getCode));
@@ -106,8 +106,8 @@ public class StockNewService {
             return;
         }
         deleteData(startDateL1, endDateL1);
-        long startDateL2 = TimeUtil.offset(startDateL1, 60);
-        long endDateL2 = TimeUtil.offset(startDateL1, 1);
+        long startDateL2 = TimeUtil.offsetLeft(startDateL1, 60);
+        long endDateL2 = TimeUtil.offsetLeft(startDateL1, 1);
         TimingClock clock2 = new TimingClock("get stock from db begin");
         List<StockTransactionInfo> dbList = stockService.getListBetween(startDateL2, endDateL2);
 
@@ -238,7 +238,7 @@ public class StockNewService {
                 MakeDataUtil.generateX(collect, date + "", code);
                 MakeDataUtil.generateY(collect, date + "", code);
                 MakeDataUtil.generateTestData(collect, date + "", code);
-                MakeDataUtil.generateOtherDir(date + "");
+                MakeDataUtil.generateOtherDir(date + "", "D:\\newstock\\{date}\\result\\", "D:\\newstock\\{date}\\param\\");
                 long time6 = System.currentTimeMillis();
                 log.info("spend time: {}ms", (time6 - time5));
             } catch (Exception e) {

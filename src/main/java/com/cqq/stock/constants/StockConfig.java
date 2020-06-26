@@ -19,4 +19,7 @@ public class StockConfig {
      * 日线数据
      */
     private String dayStockPath;
+
+    private String dayStockDataTxt;
+
 }

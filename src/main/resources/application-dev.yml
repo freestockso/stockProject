@@ -14,9 +14,10 @@ stock-constant:
   day-stock-script-path: C:\Users\admin\PycharmProjects\stock_project\stock_data.py
   day-stock-exe-path: C:\Users\admin\PycharmProjects\stock_project\venv\Scripts\python.exe
   day-stock-path: D:\data\stock\day\{date}.txt
-
+  day-stock-data-txt: D:\\data\\stock\\day\\{date}.txt
 mybatis:
   typeAliasesPackage: com.cqq.stock.entity
   mapperLocations: classpath:mapper/*.xml
   configuration:
     mapUnderscoreToCamelCase: true
+

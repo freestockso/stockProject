@@ -14,7 +14,13 @@ public class TimeUtilTest {
 
     @Test
     public void offset() {
-        long offset = TimeUtil.offset(2019_05_06, 60);
+        long offset = TimeUtil.offsetLeft(2019_05_06, 60);
+        System.out.println(offset);
+    }
+
+    @Test
+    public void hello5() {
+        long offset = TimeUtil.offsetLeft(2010101, -60);
         System.out.println(offset);
     }
 }
