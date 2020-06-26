@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ *  因为CCI不能直接作为买卖的依据，所以该分析程序已经废弃了
+ */
+@Deprecated
 public class AnalysisUtil {
     public AnalysisUtil(int n) {
         this.N = n;

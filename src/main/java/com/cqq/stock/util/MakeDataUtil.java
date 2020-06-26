@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * 生成中间矩阵工具
+ */
 public class MakeDataUtil {
 
     public static void generateOtherDir(String date) {

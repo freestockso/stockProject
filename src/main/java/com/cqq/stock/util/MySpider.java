@@ -14,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/**
+ * 爬虫工具
+ */
 public class MySpider {
 
     private String url;

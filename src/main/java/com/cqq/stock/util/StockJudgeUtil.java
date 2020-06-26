@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 /**
  * 股票价格转换判定工具,判定是否需要对股价进行 X10操作
  */
+@Deprecated
 public class StockJudgeUtil {
 
     private static List<String> lowList = new ArrayList<>();

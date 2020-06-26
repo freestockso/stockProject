@@ -16,6 +16,8 @@ import static com.cqq.stock.constants.FileConstant.DAY_SH_DATA_FILE;
 
 /**
  * 快速读取工具
+ * 从通信达的文件中快速定位，读取股票的基本数据
+ * 对ReadUtil做了一次增强
  */
 @Slf4j
 public class QuicklyReadUtil {

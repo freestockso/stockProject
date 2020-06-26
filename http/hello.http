@@ -3,7 +3,6 @@ Content-Type: application/json
 
 {
   "date": 20200108
-
 }
 
 ###
@@ -14,8 +13,21 @@ Content-Type: application/json
 {
   "code": "sh501309",
   "date": 20200108
-
 }
 
 ###
 
+POST http://localhost:8437/macd/calculateMACD
+Content-Type: application/json
+
+{
+  "code": "sz167302"
+}
+
+###
+POST http://localhost:8437/sync/test
+Content-Type: application/json
+
+{}
+
+###

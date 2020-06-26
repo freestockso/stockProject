@@ -23,7 +23,7 @@ public class SynchronizeDataTimer {
      * 每天下午3:30执行一次
      * 数据同步的定时任务,每次把最新的数据同步到库中
      */
-    @Scheduled(cron = "0 30 15 * * ?")
+//    @Scheduled(cron = "0 30 15 * * ?")
     public void syncData() {
         stockNewService.process();
     }

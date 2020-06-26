@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@Deprecated
 public class EMACalculateUtil {
 
 
@@ -40,6 +41,14 @@ public class EMACalculateUtil {
     }
 */
 
+    /**
+     * 计算股票的 macd
+     * @param list list
+     */
+    public static void calculateAll(List<EMAStock> list) {
+        calculateAll(list, 12, 26, 9);
+
+    }
 
     /**
      * 计算股票的DIF

@@ -1,12 +1,13 @@
 package com.cqq.stock.util;
 
-import com.cqq.stock.entity.CalculateStockTransactionInfo;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.function.Function;
 
+/**
+ * 时间计算工具
+ */
 public class TimeUtil {
 
     private TimeUtil() {

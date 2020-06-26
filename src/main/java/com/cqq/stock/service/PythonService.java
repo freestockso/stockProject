@@ -1,14 +1,11 @@
 package com.cqq.stock.service;
 
-import com.cqq.stock.util.TimingClock;
+import com.cqq.stock.util.PythonUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 @Slf4j
 @Service
@@ -18,30 +15,12 @@ public class PythonService {
     public static String PYTHON_PATH = "C:\\desk\\code\\python\\derivatives\\";
 
     public void call(long date) throws IOException, InterruptedException {
-        callPython(PYTHON_PATH + "coorV2.py", date + "");
+        PythonUtil.callPython(PYTHON_PATH + "coorV2.py", "C:\\Users\\admin\\PycharmProjects\\stock_project\\venv\\Scripts\\python.exe", date + "");
     }
 
     public void callOne(String code, String date) throws Exception {
-        callPython(PYTHON_PATH + "calOne.py", code, date);
+        PythonUtil.callPython(PYTHON_PATH + "calOne.py", "C:\\Users\\admin\\PycharmProjects\\stock_project\\venv\\Scripts\\python.exe", code, date);
 
     }
 
-    private void callPython(String command, String... param) throws IOException, InterruptedException {
-        String exe = "python";
-        TimingClock timingClock = new TimingClock("python call");
-        String[] cmdArr = new String[param.length + 2];
-        cmdArr[0] = exe;
-        cmdArr[1] = command;
-        for (int i = 0; i < param.length; i++) {
-            cmdArr[i + 2] = param[i];
-        }
-        Process process = Runtime.getRuntime().exec(cmdArr);
-        InputStream is = process.getInputStream();
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
-        for (String str = bufferedReader.readLine(); str != null; str = bufferedReader.readLine()) {
-            System.out.println(str);
-        }
-        process.waitFor();
-        timingClock.call("python call over");
-    }
 }

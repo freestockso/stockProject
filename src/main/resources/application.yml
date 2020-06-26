@@ -1,23 +1,4 @@
-
 spring:
   profiles:
     active: dev
 
-mybatis:
-  typeAliasesPackage: com.cqq.stock.entity
-  mapperLocations: classpath:mapper/*.xml
-  configuration:
-    mapUnderscoreToCamelCase: true
-server:
-  port: 8437
----
-
-spring:
-  profiles: dev
-
-  datasource:
-    # url: jdbc:mysql://localhost:3306/man?useSSL=true&&characterEncoding=utf8
-    url: jdbc:mysql://127.0.0.1:3306/stock_project?useSSL=true&&characterEncoding=utf8&serverTimezone=UTC&&allowMultiQueries=true
-    username: root
-    password: root
-    driver-class-name: com.mysql.jdbc.Driver
