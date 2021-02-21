@@ -39,17 +39,17 @@ public class StockForecastingController {
 
     @RequestMapping("list")
     public R list(@RequestBody @Valid DateDTO dateDTO) {
-        return R.successData(stockForecastingService.getData(dateDTO.getDate()));
+        return R.ok(stockForecastingService.getData(dateDTO.getDate()));
     }
 
 
     @PostMapping("getResult")
     public R getResult(@RequestBody @Valid GetResultDTO getResultDTO) {
-        return R.successData(stockForecastingService.getResult(getResultDTO));
+        return R.ok(stockForecastingService.getResult(getResultDTO));
     }
 
     @PostMapping("status")
     public R status(@RequestBody @Valid StatusDTO statusDTO) {
-        return R.successData(stockForecastingService.status(statusDTO));
+        return R.ok(stockForecastingService.status(statusDTO));
     }
 }

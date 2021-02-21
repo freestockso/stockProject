@@ -1,9 +1,9 @@
 package com.cqq.stock.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.cqq.stock.controller.CalculateMACDDTO;
 import com.cqq.stock.entity.EMAStock;
 import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.entity.dto.CalculateMACDDTO;
 import com.cqq.stock.mapper.StockTransactionInfoMapper;
 import com.cqq.stock.util.EMACalculateUtil;
 import lombok.AllArgsConstructor;

@@ -172,7 +172,7 @@ public class TuShareSynchronizedDataTimer {
      * 将本地磁盘的数据同步到数据库
      * 这个只适合用来增量更新，当与其他情况出现在一起的时候，可能发生意外
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+//    @Scheduled(cron = "0 0/5 * * * ?")
     public synchronized void desk2DB() {
         //找到所有未存入数据库的数据
         List<StockDataRecord> records = this.stockDataRecordService.list(Wrappers.<StockDataRecord>query().lambda().eq(StockDataRecord::getInDb, 0))

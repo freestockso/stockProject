@@ -1,5 +1,6 @@
 package com.cqq.stock.controller;
 
+import com.cqq.stock.entity.dto.CalculateMACDDTO;
 import com.cqq.stock.service.MacdService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
