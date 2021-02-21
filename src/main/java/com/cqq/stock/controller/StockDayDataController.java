@@ -1,6 +1,9 @@
 package com.cqq.stock.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cqq.stock.entity.dto.MakeDataDTO;
+import com.cqq.stock.entity.dto.StockListCondition;
+import com.cqq.stock.entity.vo.StockData;
 import com.cqq.stock.service.StockDayDataService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +21,13 @@ public class StockDayDataController {
     private StockDayDataService stockDayDataService;
 
     @PostMapping("makeDataByCode")
-    public void makeDataByCode(@RequestBody MakeDataDTO code) throws Exception {
-        stockDayDataService.makeDataByCode(code.getCode());
+    public void makeDataByCode(@RequestBody MakeDataDTO makeDataDTO) throws Exception {
+        stockDayDataService.makeDataByCode(makeDataDTO.getCode(),makeDataDTO.getDate());
+    }
+
+    @PostMapping("list")
+    public Page<StockData> list(@RequestBody StockListCondition condition) {
+        return stockDayDataService.listByCondition(condition);
+
     }
 }

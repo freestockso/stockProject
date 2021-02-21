@@ -5,9 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.cqq.stock.able.CCIAble;
 import com.cqq.stock.able.MakeDataAble;
+import com.cqq.stock.able.QuicklyInsertAble;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.stream.Stream;
 
 /**
@@ -16,7 +19,7 @@ import java.util.stream.Stream;
 @Data
 @TableName("stock_day_data")
 @NoArgsConstructor
-public class StockDayData implements CCIAble, MakeDataAble {
+public class StockDayData implements CCIAble, MakeDataAble, QuicklyInsertAble {
 
     /**
      * 无意义自增
@@ -93,5 +96,34 @@ public class StockDayData implements CCIAble, MakeDataAble {
     @Override
     public Double getClosePrice() {
         return close;
+    }
+
+    @Override
+    public String toString() {
+        return code + "," + open + "," + close + "," + high + "," + low + "," + cci + "," + changeRate + "," + date + "," + vol + "," + amount;
+    }
+
+    @Override
+    public String getQuicklyInsertSqlTemplate() {
+        return "insert into stock_day_data(code  ,  open  ,  close  ,  high  ,  low  ,  cci  ,  change_rate  ,  date  ,  vol  ,  amount)  values(?, ?, ?, ?, ?, ?, ?, ?,?,?)";
+    }
+
+    @Override
+    public void insertSet(PreparedStatement ps) throws SQLException {
+        ps.setString(1, code);
+        ps.setDouble(2, open);
+        ps.setDouble(3, close);
+        ps.setDouble(4, high);
+        ps.setDouble(5, low);
+        if (cci != null) {
+            ps.setDouble(6, cci);
+        } else {
+            ps.setNull(6,6);
+        }
+        ps.setDouble(7, changeRate);
+        ps.setLong(8, date);
+        ps.setDouble(9, vol);
+        ps.setDouble(10, amount);
+
     }
 }

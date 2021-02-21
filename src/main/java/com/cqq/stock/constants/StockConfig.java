@@ -22,4 +22,23 @@ public class StockConfig {
 
     private String dayStockDataTxt;
 
+    /**
+     * 结果集路径
+     */
+    private String resultDir;
+
+    /**
+     * logicX 的存放路径
+     */
+    private String logicXDir;
+
+    /**
+     * day stock dir
+     */
+    private String dayStockDir;
+
+    /**
+     * 结果集文件的路径
+     */
+    private String resultTxt;
 }

@@ -1,4 +1,4 @@
-package com.cqq.stock.controller;
+package com.cqq.stock.entity.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 
+/**
+ *
+ * @author qiqi.chen
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

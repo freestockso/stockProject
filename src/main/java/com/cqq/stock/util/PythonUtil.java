@@ -30,7 +30,7 @@ public class PythonUtil {
         Process process = Runtime.getRuntime().exec(cmdArr);
         process.waitFor();
         int exitValue = process.exitValue();
-        return exitValue == 0 ? new R<>(): R.error(getMsg(process.getErrorStream()));
+        return exitValue == 0 ? R.successMsg(getMsg(process.getInputStream())): R.error(getMsg(process.getErrorStream()));
     }
 
 

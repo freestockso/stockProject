@@ -1,5 +1,6 @@
 package com.cqq.stock.util;
 
+import com.cqq.stock.entity.Stock;
 import com.cqq.stock.entity.StockTransactionInfo;
 import com.cqq.stock.interfaces.StockAble;
 import net.minidev.json.annotate.JsonIgnore;
@@ -7,6 +8,7 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class QuicklyInsertUtilTest {
@@ -40,4 +42,10 @@ public class QuicklyInsertUtilTest {
         System.out.println("allTime" + (time2 - d1));
     }
 
+    @Test
+    public void test12() {
+        Map<String, List<Stock>> stringListMap = ReadUtil.readStockList(0, 1, s -> s.getDate() > 2012_0000, f->f.getName().contains("570008"));
+        System.out.println(stringListMap);
+
+    }
 }

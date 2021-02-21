@@ -14,7 +14,7 @@ public class SyncController {
     private TuShareSynchronizedDataTimer tuShareSynchronizedDataTimer;
 
     @PostMapping("syncDataFromNetworkToDesk")
-    public void test() {
+    public void syncDataFromNetworkToDesk() {
         tuShareSynchronizedDataTimer.syncDataFromNetworkToDesk();
     }
 
@@ -23,4 +23,24 @@ public class SyncController {
         tuShareSynchronizedDataTimer.desk2DB();
     }
 
+    @PostMapping("dbCalculate")
+    public void dbCalculate() throws InterruptedException {
+        tuShareSynchronizedDataTimer.dbCalculate();
+
+    }
+
+    @PostMapping("changeError")
+    public void changeError() {
+        tuShareSynchronizedDataTimer.changeError();
+    }
+
+    @PostMapping("test")
+    public void test() {
+        tuShareSynchronizedDataTimer.test();
+    }
+
+    @PostMapping("syncDataFromNetworkToDeskQuickly")
+    public void syncDataFromNetworkToDeskQuickly() throws InterruptedException {
+        tuShareSynchronizedDataTimer.syncDataFromNetworkToDeskQuickly();
+    }
 }

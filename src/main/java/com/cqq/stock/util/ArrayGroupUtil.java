@@ -37,9 +37,5 @@ public class ArrayGroupUtil {
         IntStream.range(0, pageNumber).mapToObj(
                 i -> list.stream().skip(i * pageSize).limit(pageSize).collect(Collectors.toList())
         ).forEach(consumer);
-//        List<List<T>> l = new ArrayList<>();
-//        for (int i = 0; i < pageNumber; i++) {
-//            l.add(list.stream().skip(i * pageSize).limit(pageSize).collect(Collectors.toList()));
-//        }
     }
 }

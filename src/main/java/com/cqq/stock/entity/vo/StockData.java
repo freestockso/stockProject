@@ -1,6 +1,7 @@
 package com.cqq.stock.entity.vo;
 
 import com.cqq.stock.entity.StockTransactionInfo;
+import com.cqq.stock.entity.po.StockDayData;
 import com.cqq.stock.enums.StockStatusEnum;
 import lombok.Data;
 
@@ -21,5 +22,15 @@ public class StockData {
         this.status = StockStatusEnum.TODO.getValue();
         this.date = String.valueOf(s.getDate());
         this.name = "unkwon";
+    }
+
+    public StockData(StockDayData s) {
+        this.code = s.getCode();
+        this.price = String.valueOf(s.getClose());
+        this.cci = s.getCci() == null ? null : s.getCci().toString();
+        this.status = StockStatusEnum.TODO.getValue();
+        this.date = String.valueOf(s.getDate());
+        this.name = "unknown";
+
     }
 }

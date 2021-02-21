@@ -52,4 +52,21 @@ public class FileUtil {
         }
 
     }
+
+    public static void saveLines(String realPath, List<String> list) {
+        try {
+            FileWriter fileWriter = new FileWriter(realPath);
+            list.forEach(line-> {
+                try {
+                    fileWriter.write(line+"\r\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }

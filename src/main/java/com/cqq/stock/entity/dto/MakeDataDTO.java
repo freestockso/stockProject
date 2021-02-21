@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class MakeDataDTO {
     private String code;
+    private String date;
 }

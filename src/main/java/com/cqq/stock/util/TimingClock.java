@@ -15,7 +15,7 @@ public class TimingClock {
 
     public void call(String msg) {
         long now = System.currentTimeMillis();
-        System.out.println(msg + (now - time) + "ms");
+        System.out.println(msg +":"+ (now - time) + "ms");
         this.time = now;
 
     }
