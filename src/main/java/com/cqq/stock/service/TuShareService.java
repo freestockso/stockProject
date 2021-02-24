@@ -7,9 +7,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.cqq.stock.entity.dto.*;
 import com.cqq.stock.entity.vo.FilterVO;
 import com.cqq.stock.entity.vo.R;
+import com.cqq.stock.entity.vo.TradeCalVO;
 import com.cqq.stock.interfaces.TuShareParam;
 import com.cqq.stock.util.BatchUtil;
 import com.cqq.stock.util.InvokeUtil;
+import com.cqq.stock.util.UicodeBackslashU;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,10 +41,17 @@ import java.util.stream.Collectors;
 public class TuShareService {
 
     public static final String STOCK = "stock:";
+    public static final String STOCK_BAK = "stock_bak:";
     public static final String STOCK_BASIC = "stock_basic";
     public static final int BATCH_SIZE = 7;
     private StringRedisTemplate redisTemplate;
 
+    /**
+     * 获取日线数据
+     *
+     * @param dailyParam dailyParam
+     * @return R
+     */
     private R<List<DailyResult>> daily(DailyParam dailyParam) {
         List<DailyResult> doing;
         try {
@@ -87,6 +96,67 @@ public class TuShareService {
         return R.ok(map);
     }
 
+    /**
+     * 获取交易日历
+     *
+     * @return return
+     */
+    public R<List<TradeCalVO>> tradeCal() {
+        try {
+            TradeCalParam param = new TradeCalParam();
+            param.setStart_date("20200101");
+            param.setEnd_date("20300101");
+            param.setExchange("SSE");
+            String time = redisTemplate.opsForValue().get("time");
+            if (time == null) {
+                List<TradeCalVO> tradeCal = requestList(param, TradeCalVO.class, "trade_cal");
+                redisTemplate.opsForValue().set("time", JSON.toJSONString(tradeCal));
+                return R.ok(tradeCal);
+            } else {
+                return R.ok(JSON.parseArray(time, TradeCalVO.class));
+            }
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            return R.error(e.toString());
+        }
+    }
+
+    /**
+     * 获取前面若干个开市的时间
+     *
+     * @return
+     */
+    public R<List<String>> getDay(String baseDay, int offset) {
+        R<List<TradeCalVO>> listR = tradeCal();
+        if (listR.hasError()) {
+            return R.error(listR.getMsg());
+        }
+        List<TradeCalVO> data = listR.getData();
+        int k = -1;
+        for (int i = 0; i < data.size(); i++) {
+
+            TradeCalVO tradeCalVO = data.get(i);
+            if (baseDay.equals(tradeCalVO.getCal_date())) {
+                k = i;
+                break;
+            }
+        }
+        if (k == -1) {
+            return R.error("k == -1 ? ");
+        }
+        List<String> list = new ArrayList<>();
+        for (int i = k; i >= 0; i--) {
+            TradeCalVO tradeCalVO = data.get(i);
+            if ("1".equals(tradeCalVO.getIs_open())) {
+                list.add(tradeCalVO.getCal_date());
+            }
+            if (list.size() >= offset) {
+                break;
+            }
+        }
+        return R.ok(list);
+    }
+
+
     public R<List<StockBasicResult>> stockBasic() {
         StockBasicParam param = new StockBasicParam();
         param.setList_status("L");
@@ -106,7 +176,51 @@ public class TuShareService {
         }
     }
 
-    public R<String> load() {
+    public R<List<StockComplexInfo>> stockBak(StockBakParam stockBakParam) {
+        try {
+            List<StockComplexInfo> bakDaily = requestList(stockBakParam, StockComplexInfo.class, "bak_daily");
+            return R.ok(bakDaily);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            return R.error(e.toString());
+        }
+
+    }
+
+//    public R<Map<String, List<StockComplexInfo>>> stockBakMore(StockBakParam stockBakParam) {
+//        Map<String, List<StockComplexInfo>> map = new HashMap<>();
+//        String[] codeList = stockBakParam.getTs_code().split(",");
+//        List<String> need = new ArrayList<>();
+//
+//        for (String code : codeList) {
+//            String res = redisTemplate.opsForValue().get(STOCK_BAK + code);
+//            if (res == null) {
+//                need.add(code);
+//            } else {
+//                map.put(code, JSON.parseArray(res, StockComplexInfo.class));
+//            }
+//        }
+//        int sum = (need.size() / BATCH_SIZE) + (need.size() % BATCH_SIZE == 0 ? 0 : 1);
+//        BatchUtil.with(need, BATCH_SIZE).toDo((i, ls) -> {
+//            long start = System.currentTimeMillis();
+//            log.info("第{}/{}批数据开始加载", i, sum);
+//            stockBakParam.setTs_code(String.join(",", ls));
+//            R<List<StockComplexInfo>> daily = stockBak(stockBakParam);
+//            List<StockComplexInfo> data = daily.getData();
+//            Map<String, List<StockComplexInfo>> newMap = data.stream().collect(Collectors.groupingBy(StockComplexInfo::getTs_code));
+//            newMap.forEach((k, v) -> {
+//                v.sort(Comparator.comparing(StockComplexInfo::getTrade_date));
+//                map.put(k, v);
+//                redisTemplate.opsForValue().set(STOCK_BAK + k, JSON.toJSONString(v), 1, TimeUnit.DAYS);
+//            });
+//            long end = System.currentTimeMillis();
+//            log.info("第{}批数据加载完毕,耗时:{}ms,完成进度:{}%", i, end - start, i * 100 / sum);
+//        });
+//
+//
+//        return R.ok(map);
+//    }
+
+    public R<String> loadDaily() {
         R<List<StockBasicResult>> listR = stockBasic();
         List<StockBasicResult> data = listR.getData();
         String codeList = data.stream().map(StockBasicResult::getTs_code).collect(Collectors.joining(","));
@@ -116,7 +230,18 @@ public class TuShareService {
         dailyParam.setEnd_date(DateUtil.format(DateUtil.date(), "yyyyMMdd"));
         dailyMore(dailyParam);
         return R.ok(null);
+    }
 
+    public R<String> loadStockBak() {
+        R<List<StockBasicResult>> listR = stockBasic();
+        List<StockBasicResult> data = listR.getData();
+        String codeList = data.stream().map(StockBasicResult::getTs_code).collect(Collectors.joining(","));
+        StockBakParam stockBakParam = new StockBakParam();
+        stockBakParam.setTs_code(codeList);
+        stockBakParam.setStart_date(DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -1000), "yyyyMMdd"));
+        stockBakParam.setEnd_date(DateUtil.format(DateUtil.date(), "yyyyMMdd"));
+//        stockBakMore(stockBakParam);
+        return R.ok(null);
     }
 
     private <I extends TuShareParam, O> List<O> requestList(I param, Class<O> clazz, String apiName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
@@ -131,8 +256,11 @@ public class TuShareService {
         ResponseEntity<String> responseEntity = restTemplate.postForEntity("http://api.waditu.com", requestEntity, String.class);
         String body = responseEntity.getBody();
         JSONObject root = JSON.parseObject(body);
-        System.out.println(root);
         JSONObject data = root.getJSONObject("data");
+        if (data == null) {
+            System.out.println(body);
+            System.out.println(UicodeBackslashU.unicodeToCn(body));
+        }
         JSONArray items = data.getJSONArray("items");
         JSONArray fields = data.getJSONArray("fields");
         Map<String, Integer> map = new HashMap<>();
@@ -156,10 +284,15 @@ public class TuShareService {
             list.add(dailyResult);
         }
 
-        System.out.println(list);
         return list;
     }
 
+    /**
+     * 过滤程序
+     *
+     * @param filterDTO
+     * @return
+     */
     public R<FilterVO> filter(FilterDTO filterDTO) {
         R<List<StockBasicResult>> listR = this.stockBasic();
         List<StockBasicResult> stockBasicResults = listR.getData();

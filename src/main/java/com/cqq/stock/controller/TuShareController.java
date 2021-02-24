@@ -1,9 +1,6 @@
 package com.cqq.stock.controller;
 
-import com.cqq.stock.entity.dto.DailyParam;
-import com.cqq.stock.entity.dto.DailyResult;
-import com.cqq.stock.entity.dto.FilterDTO;
-import com.cqq.stock.entity.dto.StockBasicResult;
+import com.cqq.stock.entity.dto.*;
 import com.cqq.stock.entity.vo.FilterVO;
 import com.cqq.stock.entity.vo.R;
 import com.cqq.stock.service.TuShareService;
@@ -53,11 +50,27 @@ public class TuShareController {
      */
     @PostMapping("load")
     public R<String> load() {
-        return tuShareService.load();
+        return tuShareService.loadDaily();
     }
 
     @PostMapping("filter")
-    public R<FilterVO> filter(@RequestBody FilterDTO filterDTO){
+    public R<FilterVO> filter(@RequestBody FilterDTO filterDTO) {
         return tuShareService.filter(filterDTO);
+    }
+
+
+    @PostMapping("loadStockBak")
+    public R<?> loadStockBak() {
+        return tuShareService.loadStockBak();
+    }
+
+    @PostMapping("tradeCal")
+    public R<?> tradeCal() {
+        return tuShareService.tradeCal();
+    }
+
+    @PostMapping("getDay")
+    public R<?> getDay(@RequestBody DayDTO dayDTO) {
+        return tuShareService.getDay(dayDTO.getBaseDay(), dayDTO.getOffset());
     }
 }
