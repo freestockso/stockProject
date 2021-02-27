@@ -10,10 +10,10 @@ public interface MACDAble {
      *
      * @return close price 单位(分)
      */
-    Long getClose();
+    Long close();
 
     /**
      * 设置MACD
      */
-    void setMacd(Double macd);
+    void changeMacd(Double macd);
 }

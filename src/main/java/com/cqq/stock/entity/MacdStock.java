@@ -10,4 +10,13 @@ public class MacdStock implements MACDAble {
     private Double macd;
 
 
+    @Override
+    public Long close() {
+        return close;
+    }
+
+    @Override
+    public void changeMacd(Double macd) {
+        this.macd = macd;
+    }
 }

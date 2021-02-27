@@ -73,4 +73,9 @@ public class TuShareController {
     public R<?> getDay(@RequestBody DayDTO dayDTO) {
         return tuShareService.getDay(dayDTO.getBaseDay(), dayDTO.getOffset());
     }
+
+    @PostMapping("stockBakMore")
+    public R<Map<String, List<StockComplexInfo>>> stockBakMore() {
+        return tuShareService.stockBakMore();
+    }
 }

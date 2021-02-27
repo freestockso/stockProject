@@ -11,6 +11,7 @@ import com.cqq.stock.entity.vo.TradeCalVO;
 import com.cqq.stock.interfaces.TuShareParam;
 import com.cqq.stock.util.BatchUtil;
 import com.cqq.stock.util.InvokeUtil;
+import com.cqq.stock.util.MacdUtil;
 import com.cqq.stock.util.UicodeBackslashU;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,11 +65,27 @@ public class TuShareService {
 
     public R<Map<String, List<DailyResult>>> dailyMore(DailyParam dailyParam) {
         Map<String, List<DailyResult>> map = new HashMap<>();
-        String[] codeList = dailyParam.getTs_code().split(",");
+        List<String> codeList = Arrays.stream(dailyParam.getTs_code().split(",")).collect(Collectors.toList());
         List<String> need = new ArrayList<>();
 
+//        BatchUtil.with(codeList)
+//        List<String> codeListWithPrefix = codeList.stream().map(s -> STOCK + s).collect(Collectors.toList());
+        long beginTime = System.currentTimeMillis();
+//        List<String> codeResultList = redisTemplate.opsForValue().multiGet(codeListWithPrefix);
+//        long endTime = System.currentTimeMillis();
+//        log.info("redisTemplate.opsForValue().multiGet(codeListWithPrefix) spendTime:{}", endTime - beginTime);
+//        if (codeResultList == null) {
+//            return R.error("codeResultList == null");
+//        }
+//        Map<String, String> m = new HashMap<>();
+//        for (int i = 0; i < codeList.size(); i++) {
+//            if (codeResultList.get(i) != null) {
+//                m.put(codeListWithPrefix.get(i), codeResultList.get(i));
+//            }
+//        }
         for (String code : codeList) {
             String res = redisTemplate.opsForValue().get(STOCK + code);
+//            String res = m.get(STOCK + code);
             if (res == null) {
                 need.add(code);
             } else {
@@ -186,6 +203,46 @@ public class TuShareService {
 
     }
 
+    public R<Map<String, List<StockComplexInfo>>> stockBakMore() {
+        R<List<String>> yyyyMMdd = this.getDay(DateUtil.format(DateUtil.date(), "yyyyMMdd"), 10);
+        if (yyyyMMdd.hasError()) {
+            return R.error(yyyyMMdd.getMsg());
+        }
+        String stockBak = redisTemplate.opsForValue().get("stockBak");
+        if (stockBak != null) {
+            List<StockComplexInfo> list = JSON.parseArray(stockBak, StockComplexInfo.class);
+            Map<String, List<StockComplexInfo>> map = reformat(list);
+            return R.ok(map);
+        }
+        List<String> data = yyyyMMdd.getData();
+        data.sort(String::compareTo);
+        List<StockComplexInfo> list = new ArrayList<>();
+        for (String datum : data) {
+            StockBakParam stockBakParam = new StockBakParam();
+            stockBakParam.setStart_date(datum);
+            stockBakParam.setEnd_date(datum);
+            R<List<StockComplexInfo>> listR = stockBak(stockBakParam);
+            if (listR.hasError()) {
+                return R.error(listR.getMsg());
+
+            }
+            list.addAll(listR.getData());
+        }
+        Map<String, List<StockComplexInfo>> map = reformat(list);
+        redisTemplate.opsForValue().set("stockBak", JSON.toJSONString(list));
+        return R.ok(map);
+    }
+
+    private Map<String, List<StockComplexInfo>> reformat(List<StockComplexInfo> list) {
+        Map<String, List<StockComplexInfo>> map = list.stream().collect(Collectors.groupingBy(StockComplexInfo::getTs_code));
+        Set<String> strings = map.keySet();
+        for (String string : strings) {
+            List<StockComplexInfo> list1 = map.get(string);
+            list1.sort(Comparator.comparing(StockComplexInfo::getTrade_date));
+        }
+        return map;
+    }
+
 //    public R<Map<String, List<StockComplexInfo>>> stockBakMore(StockBakParam stockBakParam) {
 //        Map<String, List<StockComplexInfo>> map = new HashMap<>();
 //        String[] codeList = stockBakParam.getTs_code().split(",");
@@ -297,49 +354,102 @@ public class TuShareService {
         R<List<StockBasicResult>> listR = this.stockBasic();
         List<StockBasicResult> stockBasicResults = listR.getData();
         FilterVO filterVO = new FilterVO();
-        BatchUtil.with(stockBasicResults, 500).toDo((i, ls) -> {
-            long start = System.currentTimeMillis();
-            DailyParam dailyParam = new DailyParam();
-            dailyParam.setTs_code(ls.stream().map(StockBasicResult::getTs_code).collect(Collectors.joining(",")));
-            dailyParam.setStart_date(DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -1000), "yyyyMMdd"));
-            dailyParam.setEnd_date(DateUtil.format(DateUtil.date(), "yyyyMMdd"));
-            R<Map<String, List<DailyResult>>> mapR = dailyMore(dailyParam);
-            Map<String, List<DailyResult>> data = mapR.getData();
-            for (StockBasicResult l : ls) {
+        //复杂的行情数据信息
+        R<Map<String, List<StockComplexInfo>>> mapR1 = stockBakMore();
+        Map<String, List<StockComplexInfo>> stockBakMore = mapR1.getData();
+        long start = System.currentTimeMillis();
+        DailyParam dailyParam = new DailyParam();
+        dailyParam.setTs_code(stockBasicResults.stream().map(StockBasicResult::getTs_code).collect(Collectors.joining(",")));
+        dailyParam.setStart_date(DateUtil.format(DateUtil.offsetDay(DateUtil.date(), -1000), "yyyyMMdd"));
+        dailyParam.setEnd_date(DateUtil.format(DateUtil.date(), "yyyyMMdd"));
+        R<Map<String, List<DailyResult>>> mapR = dailyMore(dailyParam);
+        Map<String, List<DailyResult>> data = mapR.getData();
+        int ddd = 0;
 
-                List<DailyResult> list = data.get(l.getTs_code());
-                if (list.size() < 30) {
+        long startAn = System.currentTimeMillis();
+        for (StockBasicResult l : stockBasicResults) {
+
+            ddd++;
+            if (ddd % 500 == 0) {
+                log.info("已经分析完成{}只股票,总计耗时:{}ms", ddd, System.currentTimeMillis() - startAn);
+            }
+            List<DailyResult> list = data.get(l.getTs_code());
+            if (list.size() < 50) {
+                continue;
+            }
+            DailyResult d1 = list.get(list.size() - 1);
+            DailyResult d2 = list.get(list.size() - 2);
+
+
+            //判断收盘价格
+            if (filterDTO.getMinPrice() != null && Double.parseDouble(d1.getClose()) < filterDTO.getMinPrice()) {
+                continue;
+            }
+
+            if (filterDTO.getMaxPrice() != null && Double.parseDouble(d1.getClose()) > filterDTO.getMaxPrice()) {
+                continue;
+            }
+
+            //涨幅 单位 %
+            double v = (Double.parseDouble(d1.getClose()) - Double.parseDouble(d2.getClose())) * 100 / Double.parseDouble(d2.getClose());
+
+            //判断涨幅
+            if (filterDTO.getMinChange() != null && v < filterDTO.getMinChange()) {
+                continue;
+            }
+            if (filterDTO.getMaxChange() != null && v > filterDTO.getMaxChange()) {
+                continue;
+            }
+
+            List<StockComplexInfo> stockComplexInfos = stockBakMore.get(l.getTs_code());
+            stockComplexInfos.sort(Comparator.comparing(StockComplexInfo::getTrade_date));
+            if (stockComplexInfos.isEmpty()) {
+                continue;
+            }
+            //判断换手率
+            StockComplexInfo lastStockComplexInfo = stockComplexInfos.get(stockComplexInfos.size() - 1);
+            double turnOver = Double.parseDouble(lastStockComplexInfo.getTurn_over());
+            if (filterDTO.getMinTurnOver() != null && turnOver < filterDTO.getMinTurnOver()) {
+                continue;
+            }
+            if (filterDTO.getMaxTurnOver() != null && turnOver > filterDTO.getMaxTurnOver()) {
+                continue;
+            }
+            //判断量比
+            double volRatio = Double.parseDouble(lastStockComplexInfo.getVol_ratio());
+            if (filterDTO.getMinVolRatio() != null && volRatio < filterDTO.getMinVolRatio()) {
+                continue;
+            }
+            if (filterDTO.getMaxVolRatio() != null && volRatio > filterDTO.getMaxVolRatio()) {
+                continue;
+            }
+
+            if (filterDTO.getLastUpMacdDay() != null) {
+                //计算macd
+                //找到macd连续n天上涨的
+                new MacdUtil().calculateMACD(list);
+                int k = filterDTO.getLastUpMacdDay();
+                boolean up = true;
+                for (int i = k; i >= 1; i--) {
+                    DailyResult begin = list.get(list.size() - k);
+                    DailyResult after = list.get(list.size() - k);
+                    if (begin.getMacd() > after.getMacd()) {
+                        up = false;
+                    }
+                }
+                if (!up) {
                     continue;
                 }
-                DailyResult d1 = list.get(list.size() - 1);
-                DailyResult d2 = list.get(list.size() - 2);
-
-
-                if (filterDTO.getMinPrice() != null && Double.parseDouble(d1.getClose()) < filterDTO.getMinPrice()) {
-                    continue;
-                }
-
-                if (filterDTO.getMaxPrice() != null && Double.parseDouble(d1.getClose()) > filterDTO.getMaxPrice()) {
-                    continue;
-                }
-
-                //涨幅 单位 %
-                double v = (Double.parseDouble(d1.getClose()) - Double.parseDouble(d2.getClose())) * 100 / Double.parseDouble(d2.getClose());
-
-                if (filterDTO.getMinChange() != null && v < filterDTO.getMinChange()) {
-                    continue;
-                }
-                if (filterDTO.getMaxPrice() != null && v > filterDTO.getMaxChange()) {
-                    continue;
-                }
-                filterVO.setCount(filterVO.getCount() + 1);
-                System.out.println(l.getTs_code());
             }
 
 
-            long end = System.currentTimeMillis();
-            log.info("这批股票的过滤时间花费为:{}s", (end - start) / 1000);
-        });
+            filterVO.setCount(filterVO.getCount() + 1);
+            if (filterDTO.getShowCode() != null && filterDTO.getShowCode()) {
+                filterVO.getCodeList().add(l.getTs_code());
+            }
+        }
+
+
         return R.ok(filterVO);
     }
 }
