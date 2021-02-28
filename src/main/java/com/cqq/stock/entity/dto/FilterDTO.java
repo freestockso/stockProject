@@ -57,4 +57,29 @@ public class FilterDTO {
      * macd持续上涨天数
      */
     public Integer lastUpMacdDay;
+
+    /**
+     * macd持续下跌n天
+     */
+    private Integer lastDownMacdDay;
+
+    /**
+     * macd是否穿过0轴线
+     */
+    private Boolean macdOverZero;
+
+    /**
+     * macd背离天数
+     */
+    private Integer macdDeviateDay;
+
+    /**
+     * 观察diff n天
+     */
+    private Integer diffDay;
+
+    /**
+     * diff突破0轴次数
+     */
+    private Integer diffOverZeroTime;
 }

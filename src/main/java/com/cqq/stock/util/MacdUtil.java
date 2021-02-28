@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- *
  * macd计算工具
  * 可以计算股票的macd
  *
@@ -46,9 +45,16 @@ public class MacdUtil {
 
         List<Double> emaForQuickly = getEMAForN(list, quicklyLine);
         List<Double> emaForSlow = getEMAForN(list, slowLine);
-        List<Double> diff = getDiff(emaForQuickly, emaForSlow);
-        List<Double> dea = getDea(diff, diffLine, quicklyLine, slowLine);
-        getMacd(list, diff, dea, diffLine, quicklyLine, slowLine);
+        List<Double> diffList = getDiff(emaForQuickly, emaForSlow);
+        for (int i = 0; i < diffList.size(); i++) {
+            T t = list.get(i);
+            Double diff = diffList.get(i);
+            if(diff != null){
+                t.changeDiff(diff / 100.0);
+            }
+        }
+        List<Double> dea = getDea(diffList, diffLine, quicklyLine, slowLine);
+        getMacd(list, diffList, dea, diffLine, quicklyLine, slowLine);
 
 
     }

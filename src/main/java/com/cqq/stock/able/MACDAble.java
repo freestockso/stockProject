@@ -16,4 +16,8 @@ public interface MACDAble {
      * 设置MACD
      */
     void changeMacd(Double macd);
+
+    void changeDiff(Double diff);
+
+
 }

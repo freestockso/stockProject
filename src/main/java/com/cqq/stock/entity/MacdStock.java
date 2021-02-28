@@ -19,4 +19,9 @@ public class MacdStock implements MACDAble {
     public void changeMacd(Double macd) {
         this.macd = macd;
     }
+
+    @Override
+    public void changeDiff(Double diff) {
+
+    }
 }

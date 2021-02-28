@@ -424,24 +424,24 @@ public class TuShareService {
                 continue;
             }
 
-            if (filterDTO.getLastUpMacdDay() != null) {
-                //计算macd
-                //找到macd连续n天上涨的
-                new MacdUtil().calculateMACD(list);
-                int k = filterDTO.getLastUpMacdDay();
-                boolean up = true;
-                for (int i = k; i >= 1; i--) {
-                    DailyResult begin = list.get(list.size() - k);
-                    DailyResult after = list.get(list.size() - k);
-                    if (begin.getMacd() > after.getMacd()) {
-                        up = false;
-                    }
-                }
-                if (!up) {
-                    continue;
-                }
+            new MacdUtil().calculateMACD(list);
+
+            if (!upMacd(filterDTO, list)) {
+                continue;
             }
 
+            if (!downMacd(filterDTO, list)) {
+                continue;
+            }
+
+//            //判断macd与股价是否发生背离
+//            if (!macdDeviate(filterDTO, list)) {
+//                continue;
+//            }
+            if (!diffOverZero(filterDTO, list)) {
+                continue;
+
+            }
 
             filterVO.setCount(filterVO.getCount() + 1);
             if (filterDTO.getShowCode() != null && filterDTO.getShowCode()) {
@@ -451,5 +451,123 @@ public class TuShareService {
 
 
         return R.ok(filterVO);
+    }
+
+    /**
+     * 判断在n天内，diff是否两次击破零轴
+     *
+     * @param filterDTO filterDTO
+     * @param list      list
+     * @return true
+     */
+    private boolean diffOverZero(FilterDTO filterDTO, List<DailyResult> list) {
+        if (filterDTO.getDiffDay() == null) {
+            return true;
+        }
+        int k = list.size() - filterDTO.getDiffDay();
+        int num = 0;
+        for (int i = k; i < list.size(); i++) {
+            DailyResult before = list.get(i - 1);
+            DailyResult after = list.get(i);
+            if (before.getDiff() < 0 && after.getDiff() > 0) {
+                num++;
+            }
+        }
+        int diffOverZeroTime = filterDTO.getDiffOverZeroTime() == null ? 2 : filterDTO.getDiffOverZeroTime();
+        return num >= diffOverZeroTime;
+    }
+
+    private boolean macdDeviate(FilterDTO filterDTO, List<DailyResult> list) {
+        if (filterDTO.getMacdDeviateDay() == null) {
+            return true;
+        }
+        new MacdUtil().calculateMACD(list);
+
+        DailyResult last = list.get(list.size() - 1);
+        DailyResult begin = list.get(list.size() - filterDTO.getMacdDeviateDay());
+        if (Double.parseDouble(begin.getClose()) > Double.parseDouble(last.getClose()) && begin.getDiff() < last.getDiff()) {
+            return true;
+
+        }
+        return false;
+//        for (int i = list.size() - filterDTO.getMacdDeviateDay(); i < list.size(); i++) {
+//            DailyResult begin = list.get(i);
+//            if (Double.parseDouble(begin.getClose()) > Double.parseDouble(last.getClose()) && begin.getDiff() > last.getDiff()) {
+//
+//            }
+//
+//        }
+
+
+    }
+
+    private boolean upMacd(FilterDTO filterDTO, List<DailyResult> list) {
+        if (filterDTO.getLastUpMacdDay() != null) {
+            //计算macd
+            //找到macd连续n天上涨的
+            new MacdUtil().calculateMACD(list);
+            int k = filterDTO.getLastUpMacdDay();
+            boolean up = true;
+            boolean hasZeroUp = false;
+            boolean hasZeroDown = false;
+            for (int i = list.size() - k; i < list.size() - 1; i++) {
+                DailyResult begin = list.get(i);
+                DailyResult after = list.get(i + 1);
+                if (begin.getMacd() > after.getMacd()) {
+                    up = false;
+                }
+                if (begin.getMacd() > 0) {
+                    hasZeroUp = true;
+                }
+                if (begin.getMacd() < 0) {
+                    hasZeroDown = true;
+                }
+            }
+            if (up) {
+                if (filterDTO.getMacdOverZero() == null || !filterDTO.getMacdOverZero()) {
+                    return true;
+                }
+                return hasZeroUp && hasZeroDown;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean downMacd(FilterDTO filterDTO, List<DailyResult> list) {
+
+        if (filterDTO.getLastDownMacdDay() != null) {
+            //计算macd
+            //找到macd连续n天上涨的
+            new MacdUtil().calculateMACD(list);
+            int k = filterDTO.getLastDownMacdDay();
+            boolean down = true;
+            boolean hasZeroUp = false;
+            boolean hasZeroDown = false;
+            for (int i = list.size() - k; i < list.size() - 1; i++) {
+                DailyResult begin = list.get(i);
+                DailyResult after = list.get(i + 1);
+                if (begin.getMacd() < after.getMacd()) {
+                    down = false;
+                }
+                if (begin.getMacd() > 0) {
+                    hasZeroUp = true;
+                }
+                if (begin.getMacd() < 0) {
+                    hasZeroDown = true;
+                }
+
+            }
+            if (!down) {
+                return false;
+            }
+            if (filterDTO.getMacdOverZero() == null || !filterDTO.getMacdOverZero()) {
+                return true;
+            } else {
+                return hasZeroUp && hasZeroDown;
+            }
+        }
+        return true;
     }
 }
