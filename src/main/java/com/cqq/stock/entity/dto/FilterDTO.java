@@ -82,4 +82,9 @@ public class FilterDTO {
      * diff突破0轴次数
      */
     private Integer diffOverZeroTime;
+
+    /**
+     * kdj发生金叉
+     */
+    private Double kdjLowLevel;
 }

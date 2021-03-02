@@ -20,7 +20,7 @@ public class KdjUtil {
     private int l;
 
     public KdjUtil() {
-        this.n = 14;
+        this.n = 9;
         this.m = 3;
         this.l = 3;
     }

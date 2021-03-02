@@ -9,10 +9,7 @@ import com.cqq.stock.entity.vo.FilterVO;
 import com.cqq.stock.entity.vo.R;
 import com.cqq.stock.entity.vo.TradeCalVO;
 import com.cqq.stock.interfaces.TuShareParam;
-import com.cqq.stock.util.BatchUtil;
-import com.cqq.stock.util.InvokeUtil;
-import com.cqq.stock.util.MacdUtil;
-import com.cqq.stock.util.UicodeBackslashU;
+import com.cqq.stock.util.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -42,9 +39,10 @@ import java.util.stream.Collectors;
 public class TuShareService {
 
     public static final String STOCK = "stock:";
-    public static final String STOCK_BAK = "stock_bak:";
+    //    public static final String STOCK_BAK = "stock_bak:";
     public static final String STOCK_BASIC = "stock_basic";
     public static final int BATCH_SIZE = 7;
+    public static final String STOCK_BAK = "stockBak";
     private StringRedisTemplate redisTemplate;
 
     /**
@@ -208,7 +206,7 @@ public class TuShareService {
         if (yyyyMMdd.hasError()) {
             return R.error(yyyyMMdd.getMsg());
         }
-        String stockBak = redisTemplate.opsForValue().get("stockBak");
+        String stockBak = redisTemplate.opsForValue().get(STOCK_BAK);
         if (stockBak != null) {
             List<StockComplexInfo> list = JSON.parseArray(stockBak, StockComplexInfo.class);
             Map<String, List<StockComplexInfo>> map = reformat(list);
@@ -229,7 +227,7 @@ public class TuShareService {
             list.addAll(listR.getData());
         }
         Map<String, List<StockComplexInfo>> map = reformat(list);
-        redisTemplate.opsForValue().set("stockBak", JSON.toJSONString(list));
+        redisTemplate.opsForValue().set(STOCK_BAK, JSON.toJSONString(list), 1, TimeUnit.DAYS);
         return R.ok(map);
     }
 
@@ -370,9 +368,15 @@ public class TuShareService {
         for (StockBasicResult l : stockBasicResults) {
 
             ddd++;
+
             if (ddd % 500 == 0) {
                 log.info("已经分析完成{}只股票,总计耗时:{}ms", ddd, System.currentTimeMillis() - startAn);
             }
+            //去除创业版的股票
+            if (l.getTs_code().startsWith("300")) {
+                continue;
+            }
+
             List<DailyResult> list = data.get(l.getTs_code());
             if (list.size() < 50) {
                 continue;
@@ -438,9 +442,15 @@ public class TuShareService {
 //            if (!macdDeviate(filterDTO, list)) {
 //                continue;
 //            }
+            //如果在n天内，diff上穿0轴线线m次
             if (!diffOverZero(filterDTO, list)) {
                 continue;
 
+            }
+            new KdjUtil3().calculate(list);
+            //如果在20附近,两次形成jdk金叉
+            if (!kdjGold(filterDTO, list)) {
+                continue;
             }
 
             filterVO.setCount(filterVO.getCount() + 1);
@@ -451,6 +461,19 @@ public class TuShareService {
 
 
         return R.ok(filterVO);
+    }
+
+    private boolean kdjGold(FilterDTO filterDTO, List<DailyResult> list) {
+        if (filterDTO.getKdjLowLevel() == null) {
+            return true;
+        }
+        DailyResult lastOne = list.get(list.size() - 1);
+        if (lastOne.getK() < filterDTO.getKdjLowLevel() && lastOne.getD() < filterDTO.getKdjLowLevel() && lastOne.getK() > lastOne.getD()) {
+            return true;
+        }
+
+
+        return false;
     }
 
     /**

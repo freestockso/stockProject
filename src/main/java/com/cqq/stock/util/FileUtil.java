@@ -36,13 +36,27 @@ public class FileUtil {
 
     }
 
+    public static String readContent(File file) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+        for (; ; ) {
+            String s = bufferedReader.readLine();
+            if (s == null) {
+                break;
+            }
+            stringBuilder.append(s);
+        }
+        return stringBuilder.toString();
+
+    }
+
     public static List<String> readLines(File file) {
         try {
-            List<String>list = new ArrayList<>();
+            List<String> list = new ArrayList<>();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-            for(;;){
+            for (; ; ) {
                 String s = bufferedReader.readLine();
-                if(s==null)break;
+                if (s == null) break;
                 list.add(s);
             }
             return list;
@@ -56,9 +70,9 @@ public class FileUtil {
     public static void saveLines(String realPath, List<String> list) {
         try {
             FileWriter fileWriter = new FileWriter(realPath);
-            list.forEach(line-> {
+            list.forEach(line -> {
                 try {
-                    fileWriter.write(line+"\r\n");
+                    fileWriter.write(line + "\r\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
